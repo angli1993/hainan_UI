@@ -34,7 +34,7 @@ const html = `<!doctype html>
       };
     })();
   </script>
-  <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+  <script defer src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js" onload="globalThis.lucide&&globalThis.lucide.createIcons({attrs:{width:16,height:16}})"></script>
 </head>
 <body>
 ${fragment}

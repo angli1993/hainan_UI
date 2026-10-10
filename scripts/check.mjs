@@ -18,10 +18,14 @@ const required = [
   '静息态 EEG',
   '平台图谱库',
   'BIDS 数据',
-  '静息态 fMRI 去噪',
+  '时间序列处理',
   'fMRI 特征提取',
   '功能梯度',
-  '计算起点',
+  '最近复用节点',
+  '查看处理路径',
+  '调整参数',
+  '推荐方案',
+  '可复用时间序列',
   'DTI 特征提取',
   'FreeSurfer 结构像处理',
   'deepmriprep VBM 处理',
@@ -43,6 +47,15 @@ if (source.includes('<h3>ReHo 与功能连接</h3>')) {
 }
 if (source.includes('<span>运行原则</span>') || source.includes("state.units[target].length} 个平台图谱")) {
   failures.push('The plan must show a concrete calculation start and actual atlas names.');
+}
+if (source.includes("if (key === 'fmri') return '从已完成的静息态 fMRI 去噪结果开始'")) {
+  failures.push('fMRI must determine the deepest compatible artifact instead of assuming one global denoised input.');
+}
+if (!source.includes("selected: ['reho']") || !source.includes('reusable = { alff:74, reho:98, fc:112, gradients:61 }')) {
+  failures.push('The approved ReHo cache-reuse demonstration is missing.');
+}
+if (!source.includes('fmriSharesGradientIntermediate')) {
+  failures.push('Functional connectivity and gradients must demonstrate compatible intermediate reuse.');
 }
 if (!source.includes("flowKind:'branched'")) {
   failures.push('T1 must retain separate FreeSurfer and deepmriprep branches.');
