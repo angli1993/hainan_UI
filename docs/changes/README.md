@@ -7,3 +7,4 @@
 | 0003 | fMRI 特征边界与功能梯度 | Verified |
 | 0004 | 复刻平台图谱查看工作台 | Verified |
 | 0005 | fMRI 特征方案与缓存复用 | Verified |
+| 0006 | 医生端分析准备度与任务衔接 | Verified |

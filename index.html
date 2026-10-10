@@ -242,6 +242,8 @@
     #integrated-clinical-workbench .icw-feature-tag.is-waiting { color: var(--icw-warning); background: var(--icw-warning-soft); }
     #integrated-clinical-workbench .icw-result-output { color: var(--icw-text-3); font-size: 9px; text-align: right; white-space: nowrap; }
     #integrated-clinical-workbench .icw-result-output b { display: block; margin-top: 2px; color: var(--icw-text-2); font-weight: 500; }
+    #integrated-clinical-workbench .icw-result-output em { margin-top: 4px; display: inline-block; padding: 2px 5px; border-radius: 4px; color: var(--icw-brand-dark); background: var(--icw-brand-soft); font-size: 8px; font-style: normal; }
+    #integrated-clinical-workbench .icw-result-output em.is-custom { color: var(--icw-warning); background: var(--icw-warning-soft); }
     #integrated-clinical-workbench .icw-result-actions { display: flex; align-items: center; gap: 4px; }
     #integrated-clinical-workbench .icw-result-action { min-height: 30px; padding: 5px 7px; display: inline-flex; align-items: center; gap: 4px; border: 0; border-radius: 6px; color: var(--icw-brand-dark); background: transparent; font-size: 9px; white-space: nowrap; }
     #integrated-clinical-workbench .icw-result-action:hover { background: var(--icw-brand-soft); }
@@ -274,13 +276,24 @@
     #integrated-clinical-workbench .icw-reuse-note { margin: 8px 0 0; color: var(--icw-text-3); font-size: 8px; line-height: 1.5; }
     #integrated-clinical-workbench .icw-plan-feature { display: block; margin-bottom: 3px; }
     #integrated-clinical-workbench .icw-plan-feature:last-child { margin-bottom: 0; }
-    #integrated-clinical-workbench .icw-plan-metrics { margin: 4px 14px 12px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border: 1px solid var(--icw-line); border-radius: 7px; overflow: hidden; }
+    #integrated-clinical-workbench .icw-plan-metrics { margin: 4px 14px 12px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid var(--icw-line); border-radius: 7px; overflow: hidden; }
     #integrated-clinical-workbench .icw-plan-metrics div { padding: 8px 9px; border-right: 1px solid var(--icw-line); }
     #integrated-clinical-workbench .icw-plan-metrics div:last-child { border-right: 0; }
     #integrated-clinical-workbench .icw-plan-metrics b,
     #integrated-clinical-workbench .icw-plan-metrics span { display: block; }
     #integrated-clinical-workbench .icw-plan-metrics b { font-size: 14px; font-weight: 500; }
     #integrated-clinical-workbench .icw-plan-metrics span { margin-top: 2px; color: var(--icw-text-3); font-size: 8px; line-height: 1.35; }
+    #integrated-clinical-workbench .icw-plan-metrics .is-warning b { color: var(--icw-warning); }
+    #integrated-clinical-workbench .icw-plan-version { display: inline-flex; align-items: center; gap: 5px; color: var(--icw-brand-dark); }
+    #integrated-clinical-workbench .icw-plan-version::before { content: ''; width: 6px; height: 6px; flex: none; border-radius: 50%; background: var(--icw-brand); }
+    #integrated-clinical-workbench .icw-plan-version.is-custom { color: var(--icw-warning); }
+    #integrated-clinical-workbench .icw-plan-version.is-custom::before { background: var(--icw-warning); }
+    #integrated-clinical-workbench .icw-plan-tech { margin: 0 14px 11px; border-top: 1px solid var(--icw-line-soft); border-bottom: 1px solid var(--icw-line-soft); }
+    #integrated-clinical-workbench .icw-plan-tech summary { min-height: 36px; display: flex; align-items: center; justify-content: space-between; gap: 8px; color: var(--icw-text-2); font-size: 9px; list-style: none; cursor: pointer; }
+    #integrated-clinical-workbench .icw-plan-tech summary::-webkit-details-marker { display: none; }
+    #integrated-clinical-workbench .icw-plan-tech summary::after { content: '+'; color: var(--icw-brand-dark); font-size: 14px; }
+    #integrated-clinical-workbench .icw-plan-tech[open] summary::after { content: '−'; }
+    #integrated-clinical-workbench .icw-plan-tech .icw-plan-list { padding: 0; border-top: 1px solid var(--icw-line-soft); }
     #integrated-clinical-workbench .icw-result-space { margin-top: 10px; padding-top: 10px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-top: 1px solid var(--icw-line-soft); }
     #integrated-clinical-workbench .icw-result-space-copy { min-width: 0; }
     #integrated-clinical-workbench .icw-result-space-copy b,
@@ -442,7 +455,7 @@
     #integrated-clinical-workbench .icw-table-head { padding: 10px 15px; display: grid; grid-template-columns: 1.2fr 1fr .8fr .8fr; gap: 12px; color: var(--icw-text-3); background: var(--icw-subtle); border-bottom: 1px solid var(--icw-line); font-size: 9px; }
 
     /* Mapping editor derived from the existing import flow */
-    #integrated-clinical-workbench .icw-modal-layer { position: absolute; inset: 0; z-index: 20; padding: 28px; display: grid; place-items: center; background: light-dark(rgba(20, 36, 29, .42), rgba(0, 0, 0, .62)); }
+    #integrated-clinical-workbench .icw-modal-layer { position: fixed; inset: 0; z-index: 20; padding: 28px; display: grid; place-items: center; background: light-dark(rgba(20, 36, 29, .42), rgba(0, 0, 0, .62)); }
     #integrated-clinical-workbench .icw-modal { width: min(920px, 100%); max-height: 760px; overflow: hidden; border: 1px solid var(--icw-line); border-radius: 12px; background: var(--icw-surface); box-shadow: 0 24px 70px rgba(16,39,31,.22); }
     #integrated-clinical-workbench .icw-modal-head { min-height: 58px; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--icw-line); }
     #integrated-clinical-workbench .icw-modal-title { display: flex; align-items: center; gap: 9px; min-width: 0; }
@@ -470,6 +483,34 @@
     #integrated-clinical-workbench .icw-modal-footer span { color: var(--icw-text-3); font-size: 9px; }
     #integrated-clinical-workbench .icw-modal-actions { display: flex; gap: 7px; }
     #integrated-clinical-workbench .icw-settings-modal { width: min(900px, 100%); max-height: 780px; display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--icw-line); border-radius: 12px; background: var(--icw-surface); box-shadow: 0 24px 70px rgba(16,39,31,.22); }
+    #integrated-clinical-workbench .icw-readiness-modal { width: min(820px, 100%); max-height: 780px; display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--icw-line); border-radius: 12px; background: var(--icw-surface); box-shadow: 0 24px 70px rgba(16,39,31,.22); }
+    #integrated-clinical-workbench .icw-readiness-body { min-height: 0; flex: 1 1 auto; padding: 14px 16px; display: grid; grid-auto-rows: max-content; align-content: start; gap: 13px; overflow-y: auto; }
+    #integrated-clinical-workbench .icw-readiness-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border: 1px solid var(--icw-line); border-radius: 8px; overflow: hidden; }
+    #integrated-clinical-workbench .icw-readiness-summary div { padding: 11px 12px; border-right: 1px solid var(--icw-line); }
+    #integrated-clinical-workbench .icw-readiness-summary div:last-child { border-right: 0; }
+    #integrated-clinical-workbench .icw-readiness-summary b,
+    #integrated-clinical-workbench .icw-readiness-summary span { display: block; }
+    #integrated-clinical-workbench .icw-readiness-summary b { font-size: 18px; font-weight: 500; }
+    #integrated-clinical-workbench .icw-readiness-summary span { margin-top: 3px; color: var(--icw-text-3); font-size: 9px; line-height: 1.4; }
+    #integrated-clinical-workbench .icw-readiness-summary .is-warning b { color: var(--icw-warning); }
+    #integrated-clinical-workbench .icw-readiness-section { border: 1px solid var(--icw-line); border-radius: 8px; overflow: hidden; }
+    #integrated-clinical-workbench .icw-readiness-section h3 { margin: 0; padding: 10px 12px; border-bottom: 1px solid var(--icw-line); font-size: 11px; font-weight: 500; }
+    #integrated-clinical-workbench .icw-readiness-row { min-height: 48px; padding: 9px 12px; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; border-bottom: 1px solid var(--icw-line-soft); }
+    #integrated-clinical-workbench .icw-readiness-row:last-child { border-bottom: 0; }
+    #integrated-clinical-workbench .icw-readiness-row > i { width: 24px; height: 24px; display: grid; place-items: center; border-radius: 50%; color: var(--icw-brand-dark); background: var(--icw-brand-soft); font-style: normal; font-size: 9px; }
+    #integrated-clinical-workbench .icw-readiness-row.is-warning > i { color: var(--icw-warning); background: var(--icw-warning-soft); }
+    #integrated-clinical-workbench .icw-readiness-row b,
+    #integrated-clinical-workbench .icw-readiness-row small { display: block; }
+    #integrated-clinical-workbench .icw-readiness-row b { font-size: 10px; font-weight: 500; }
+    #integrated-clinical-workbench .icw-readiness-row small { margin-top: 3px; color: var(--icw-text-3); font-size: 9px; line-height: 1.45; }
+    #integrated-clinical-workbench .icw-readiness-row strong { color: var(--icw-text-2); font-size: 10px; font-weight: 500; white-space: nowrap; }
+    #integrated-clinical-workbench .icw-next-flow { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border: 1px solid var(--icw-line); border-radius: 8px; overflow: hidden; }
+    #integrated-clinical-workbench .icw-next-flow div { position: relative; padding: 10px 11px; border-right: 1px solid var(--icw-line); }
+    #integrated-clinical-workbench .icw-next-flow div:last-child { border-right: 0; }
+    #integrated-clinical-workbench .icw-next-flow b,
+    #integrated-clinical-workbench .icw-next-flow small { display: block; }
+    #integrated-clinical-workbench .icw-next-flow b { color: var(--icw-brand-dark); font-size: 9px; font-weight: 500; }
+    #integrated-clinical-workbench .icw-next-flow small { margin-top: 4px; color: var(--icw-text-3); font-size: 8px; line-height: 1.4; }
     #integrated-clinical-workbench .icw-settings-context { padding: 10px 14px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; border-bottom: 1px solid var(--icw-line); background: var(--icw-subtle); }
     #integrated-clinical-workbench .icw-settings-context div { padding: 3px 10px; border-right: 1px solid var(--icw-line); }
     #integrated-clinical-workbench .icw-settings-context div:last-child { border-right: 0; }
@@ -595,6 +636,10 @@
       #integrated-clinical-workbench .icw-atlas-count { display: none; }
       #integrated-clinical-workbench .icw-modal-layer { padding: 8px; }
       #integrated-clinical-workbench .icw-modal { max-height: 790px; }
+      #integrated-clinical-workbench .icw-modal,
+      #integrated-clinical-workbench .icw-settings-modal,
+      #integrated-clinical-workbench .icw-atlas-modal,
+      #integrated-clinical-workbench .icw-readiness-modal { max-height: calc(100dvh - 16px); }
       #integrated-clinical-workbench .icw-modal-tools,
       #integrated-clinical-workbench .icw-modal-footer { align-items: stretch; flex-direction: column; }
       #integrated-clinical-workbench .icw-modal-actions { width: 100%; }
@@ -607,6 +652,12 @@
       #integrated-clinical-workbench .icw-switch-row { justify-content: flex-start; }
       #integrated-clinical-workbench .icw-segmented { width: 100%; overflow-x: auto; }
       #integrated-clinical-workbench .icw-setting-foot { align-items: stretch; flex-direction: column; }
+      #integrated-clinical-workbench .icw-readiness-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      #integrated-clinical-workbench .icw-readiness-summary div:nth-child(2) { border-right: 0; }
+      #integrated-clinical-workbench .icw-readiness-summary div:nth-child(-n+2) { border-bottom: 1px solid var(--icw-line); }
+      #integrated-clinical-workbench .icw-next-flow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      #integrated-clinical-workbench .icw-next-flow div:nth-child(2) { border-right: 0; }
+      #integrated-clinical-workbench .icw-next-flow div:nth-child(-n+2) { border-bottom: 1px solid var(--icw-line); }
       #integrated-clinical-workbench .icw-reuse-route { grid-template-columns: 1fr; }
       #integrated-clinical-workbench .icw-reuse-node { border-right: 0; border-bottom: 1px solid var(--icw-line); }
       #integrated-clinical-workbench .icw-reuse-node:last-child { border-bottom: 0; }
@@ -706,6 +757,16 @@
       <footer class="icw-atlas-foot"><span id="icw-atlas-total">平台当前已导入 57 个离散标签体图谱</span><div class="icw-modal-actions"><span>可同时选择多个图谱</span><button type="button" class="icw-primary-button" id="icw-apply-atlas"><i data-lucide="check" aria-hidden="true"></i>应用图谱选择</button></div></footer>
     </section>
   </div>
+  <div class="icw-modal-layer" id="icw-readiness-modal" hidden>
+    <section class="icw-readiness-modal" role="dialog" aria-modal="true" aria-labelledby="icw-readiness-title">
+      <header class="icw-modal-head">
+        <div class="icw-modal-title"><i data-lucide="clipboard-check" aria-hidden="true"></i><span><h2 id="icw-readiness-title">分析前检查</h2><small>确认纳入范围、处理安排和后续步骤</small></span></div>
+        <button type="button" class="icw-icon-button" data-close-readiness aria-label="关闭分析前检查"><i data-lucide="x" aria-hidden="true"></i></button>
+      </header>
+      <div class="icw-readiness-body" id="icw-readiness-body"></div>
+      <footer class="icw-modal-footer"><span>当前为界面样板，不会创建任务或写入后端。</span><div class="icw-modal-actions"><button type="button" class="icw-secondary-button" data-close-readiness>返回调整</button><button type="button" class="icw-primary-button" id="icw-demo-create-task"><i data-lucide="play" aria-hidden="true"></i>确认并创建任务</button></div></footer>
+    </section>
+  </div>
   <div class="icw-toast" id="icw-toast" role="status" aria-live="polite" hidden><i data-lucide="info" aria-hidden="true"></i><span></span></div>
 
   <script>
@@ -718,6 +779,7 @@
       const modal = root.querySelector('#icw-mapping-modal');
       const settingsModal = root.querySelector('#icw-settings-modal');
       const atlasModal = root.querySelector('#icw-atlas-modal');
+      const readinessModal = root.querySelector('#icw-readiness-modal');
       const toast = root.querySelector('#icw-toast');
       const sidebar = root.querySelector('.icw-sidebar');
       const scrim = root.querySelector('.icw-scrim');
@@ -1270,7 +1332,8 @@
       }
       function flowStepHtml(key, config, step, number) {
         const workload = stageWorkload(config, step);
-        const prefix = step[2] === 'bids' ? '可用：' : '当前：';
+        const fmriPrefixes = { bids:'可用：', preprocess:'已完成：', denoise:'需补处理：', features:'可进入：' };
+        const prefix = key === 'fmri' ? fmriPrefixes[step[2]] : step[2] === 'bids' ? '可用：' : '当前：';
         return `<button type="button" class="icw-flow-step" data-open-settings="${key}" data-settings-stage="${esc(step[2])}" aria-label="查看${esc(step[0])}阶段详情，${esc(workload)}"><span class="icw-flow-top"><span class="icw-flow-number">${esc(number)}</span><b>${esc(step[0])}</b></span><small>${esc(step[1])}</small><span class="icw-flow-queue ${config.waiting ? 'is-waiting' : ''}">${config.waiting ? '' : prefix}${esc(workload)}</span><span class="icw-flow-action">查看阶段详情 <i data-lucide="chevron-right" aria-hidden="true"></i></span></button>`;
       }
       function pipelineHtml(key, config) {
@@ -1318,15 +1381,32 @@
         return `<section class="icw-atlas-library"><div class="icw-module-head"><div><h2>平台图谱库</h2><p>查看平台已导入的离散标签体图谱、模板空间、审核状态、脑区标签与空间分布。具体特征只显示与当前处理路径兼容的图谱。</p></div><button type="button" class="icw-source-button" data-toast="正式接入后复用原平台 /api/imaging/atlases 接口与 NiiVue 查看器。"><i data-lucide="database" aria-hidden="true"></i>查看资源来源</button></div><div class="icw-library-summary"><div><b>神经影像公共资源</b><span>供 fMRI、DTI 和 VBM 特征配置按需引用</span></div><div><b>${atlasCatalog.length}</b><span>目录图谱</span></div><div><b>${enabled}</b><span>平台已启用</span></div><div><b>${reviewed}</b><span>结构检查通过</span></div></div><div class="icw-atlas-workbench"><aside class="icw-library-catalog"><div class="icw-library-toolbar"><input class="icw-atlas-search" id="icw-library-search" type="search" value="${esc(state.libraryQuery)}" placeholder="搜索图谱名称或编号" aria-label="搜索平台图谱库"><div class="icw-atlas-spaces">${spaces.map(space => `<button type="button" data-library-space="${esc(space)}" class="${space === state.librarySpace ? 'is-active' : ''}">${esc(space || '全部')}</button>`).join('')}</div></div><ul class="icw-library-list" role="listbox" aria-label="图谱目录">${list}</ul><div class="icw-library-foot"><span>显示 ${rows.length} / ${atlasCatalog.length} 个</span><span>选择图谱查看详情</span></div></aside><section class="icw-library-detail" aria-label="图谱详情">${detail}</section></div></section>`;
       }
 
+      function fmriReadiness(chosen) {
+        const plans = chosen.map(item => ({ item, plan:fmriReusePlan(item.id) }));
+        const direct = plans.length ? Math.min(...plans.map(({plan}) => plan.reusable)) : 0;
+        return { eligible:146, direct, supplement:146 - direct, unavailable:26, plans, custom:chosen.some(item => fmriRecipeCustom(item.id)) };
+      }
+
       function fmriPlanHtml(chosen) {
         if (!chosen.length) return '';
-        const plans = chosen.map(item => ({ item, plan:fmriReusePlan(item.id) }));
-        const statuses = plans.map(({item}) => `<span class="icw-plan-feature">${esc(item.short)}：${fmriRecipeCustom(item.id) ? '已调整参数' : '推荐方案'}</span>`).join('');
-        const nodes = plans.map(({item,plan}) => `<span class="icw-plan-feature">${esc(item.short)}：${esc(plan.nearest)}</span>`).join('');
-        const params = plans.map(({item}) => `<span class="icw-plan-feature">${esc(item.short)}：${esc(fmriRecipeSummary(item.id))}</span>`).join('');
-        const reuse = plans.map(({item,plan}) => `${esc(item.short)} ${plan.reusable}`).join(' · ');
-        const jobs = plans.map(({item,plan}) => `${esc(item.short)} ${plan.timeSeriesNew} + ${plan.featureNew}`).join(' · ');
-        return `<li><span>方案状态</span><b>${statuses}</b></li><li><span>最近复用节点</span><b>${nodes}</b></li><li><span>关键参数</span><b>${params}</b></li></ul><div class="icw-plan-metrics"><div><b>${reuse}</b><span>可复用时间序列（次检查）</span></div><div><b>${jobs}</b><span>新增：时间序列 + 特征计算</span></div></div><ul class="icw-plan-list">`;
+        const readiness = fmriReadiness(chosen);
+        const nodes = readiness.plans.map(({item,plan}) => `<span class="icw-plan-feature">${esc(item.short)}：${esc(plan.nearest)}</span>`).join('');
+        const params = readiness.plans.map(({item}) => `<span class="icw-plan-feature">${esc(item.short)}：${esc(fmriRecipeSummary(item.id))}</span>`).join('');
+        const jobs = readiness.plans.map(({item,plan}) => `<span class="icw-plan-feature">${esc(item.short)}：${plan.timeSeriesNew} 次时间序列处理 + ${plan.featureNew} 次特征计算</span>`).join('');
+        return `<li><span>方案版本</span><b><span class="icw-plan-version ${readiness.custom ? 'is-custom' : ''}">${readiness.custom ? '自定义草案' : '队列推荐方案 v1.0'}</span></b></li><li><span>可分析检查</span><b>${readiness.eligible} / 172 次</b></li></ul><div class="icw-plan-metrics"><div><b>${readiness.direct}</b><span>可直接计算</span></div><div><b>${readiness.supplement}</b><span>需自动补处理</span></div><div class="is-warning"><b>${readiness.unavailable}</b><span>暂不可分析</span></div></div><details class="icw-plan-tech"><summary>查看技术方案</summary><ul class="icw-plan-list"><li><span>处理来源</span><b>${esc(selectionSource('fmri', chosen))}</b></li><li><span>复用节点</span><b>${nodes}</b></li><li><span>关键参数</span><b>${params}</b></li><li><span>新增计算</span><b>${jobs}</b></li></ul></details><ul class="icw-plan-list">`;
+      }
+
+      function renderReadinessModal() {
+        const chosen = imaging.fmri.results.filter(item => state.selected.fmri.has(item.id));
+        const readiness = fmriReadiness(chosen);
+        const version = readiness.custom ? '自定义草案' : '队列推荐方案 v1.0';
+        root.querySelector('#icw-readiness-body').innerHTML = `<div class="icw-setting-intro"><i data-lucide="info" aria-hidden="true"></i><span>本页只确认数据是否具备分析条件。正式系统由确定性规则返回检查结果，Agent 不决定纳入或排除。</span></div>
+          <div class="icw-readiness-summary"><div><b>172</b><span>具有可用 BIDS 数据</span></div><div><b>${readiness.eligible}</b><span>本次可纳入分析</span></div><div><b>${readiness.direct}</b><span>可直接进入特征计算</span></div><div class="is-warning"><b>${readiness.unavailable}</b><span>暂不纳入本次分析</span></div></div>
+          <div class="icw-readiness-section"><h3>本次处理安排 · ${esc(version)}</h3><div class="icw-readiness-row"><i>1</i><span><b>直接进入特征计算</b><small>已有与当前方案兼容的时间序列结果。</small></span><strong>${readiness.direct} 次检查</strong></div><div class="icw-readiness-row"><i>2</i><span><b>自动补充时间序列处理</b><small>复用预处理结果，补完后自动进入特征计算。</small></span><strong>${readiness.supplement} 次检查</strong></div></div>
+          <div class="icw-readiness-section"><h3>暂不可分析的原因</h3><div class="icw-readiness-row is-warning"><i>!</i><span><b>等待 fMRI 预处理完成</b><small>已有 BIDS 数据，但尚无合格的预处理 BOLD。</small></span><strong>18 次检查</strong></div><div class="icw-readiness-row is-warning"><i>!</i><span><b>等待影像质量复核</b><small>高头动或覆盖范围问题需要人工确认。</small></span><strong>5 次检查</strong></div><div class="icw-readiness-row is-warning"><i>!</i><span><b>BOLD / T1w 关联不完整</b><small>缺少本次处理所需的配套结构像关联。</small></span><strong>3 次检查</strong></div></div>
+          ${readiness.custom ? '<div class="icw-setting-intro is-warning"><i data-lucide="triangle-alert" aria-hidden="true"></i><span>当前为自定义草案。正式提交时应创建新的方案版本，结果不能自动与队列推荐方案 v1.0 合并比较。</span></div>' : ''}
+          <div><div class="icw-section-title"><div><h3>确认后的流程</h3><p>任务、质控和结果均保留方案版本与审计记录。</p></div></div><div class="icw-next-flow"><div><b>1 创建任务</b><small>冻结数据范围与方案版本</small></div><div><b>2 自动补处理</b><small>只运行缺失或不兼容步骤</small></div><div><b>3 人工质控</b><small>查看失败、头动和影像质量</small></div><div><b>4 查看结果</b><small>按患者、随访与指标查看</small></div></div></div>`;
+        readinessModal.hidden = false; icons();
       }
 
       function imagingHtml(key) {
@@ -1335,16 +1415,16 @@
         const resultRows = config.results.map(item => `<article class="icw-result" data-result="${esc(item.id)}"><div class="icw-result-main">
           <button type="button" class="icw-result-check" data-result-check="${esc(item.id)}" aria-label="选择${esc(item.title)}" aria-pressed="${state.selected[key].has(item.id)}" ${item.waiting ? 'disabled' : ''}><i data-lucide="check" aria-hidden="true"></i></button>
           <div class="icw-result-copy"><b>${esc(item.title)}<span class="icw-feature-tag ${item.blue ? 'is-blue' : ''} ${item.waiting ? 'is-waiting' : ''}">${esc(item.tag)}</span></b><p>${esc(item.summary)}</p></div>
-          <div class="icw-result-output">结果形式<b>${esc(item.output)}</b></div>
+          <div class="icw-result-output">结果形式<b>${esc(item.output)}</b>${key === 'fmri' && !item.waiting ? `<em class="${fmriRecipeCustom(item.id) ? 'is-custom' : ''}">${fmriRecipeCustom(item.id) ? '自定义草案' : '推荐 v1.0'}</em>` : ''}</div>
           <div class="icw-result-actions"><button type="button" class="icw-result-action" data-result-expand="${esc(item.id)}" aria-label="查看${esc(item.title)}的处理路径" aria-expanded="false"><i data-lucide="route" aria-hidden="true"></i>${key === 'fmri' ? '查看处理路径' : '查看处理依据'}</button>${key === 'fmri' && !item.waiting ? `<button type="button" class="icw-result-action" data-open-feature-settings="${esc(item.id)}"><i data-lucide="sliders-horizontal" aria-hidden="true"></i>调整参数</button>` : ''}</div>
         </div><div class="icw-result-detail" hidden><dl><dt>先决条件</dt><dd>${esc(item.prereq)}</dd><dt>处理原则</dt><dd>${esc(item.rule)}</dd><dt>结果内容</dt><dd>${esc(item.files)}</dd></dl>${key === 'fmri' && !item.waiting ? fmriRecipeRouteHtml(item) : ''}${item.waiting ? '' : resultSpaceHtml(key, item)}</div></article>`).join('');
         const shared = key === 'fmri' && fmriSharesGradientIntermediate();
         return `<section class="icw-module" data-module="${key}">
           <div class="icw-module-head"><div><h2>${esc(config.title)}</h2><p>${esc(config.lead)}</p></div><button type="button" class="icw-source-button" data-toast="当前处理来源：${esc(config.source)}。"><i data-lucide="database" aria-hidden="true"></i>查看数据来源</button></div>
-          <div class="icw-demo-data" aria-label="演示队列数据"><div class="icw-cohort"><b>${esc(config.demo.cohort)}</b><span>样板数据，不连接真实数据库</span></div><div><b>${esc(config.demo.subjects)}</b><span>演示患者</span></div><div><b>${esc(config.demo.visits)}</b><span>演示随访</span></div><div><b>${esc(config.demo.inputs)}</b><span>具备可用输入</span></div><div><b>${esc(config.demo.results)}</b><span>已登记结果</span></div></div>
+          <div class="icw-demo-data" aria-label="演示队列数据"><div class="icw-cohort"><b>${esc(config.demo.cohort)}</b><span>样板数据，不连接真实数据库</span></div><div><b>${esc(config.demo.subjects)}</b><span>演示患者</span></div><div><b>${esc(config.demo.visits)}</b><span>演示随访</span></div><div><b>${esc(config.demo.inputs)}</b><span>具备可用输入</span></div><div><b>${esc(config.demo.results)}</b><span>${key === 'fmri' ? '可进入分析' : '已登记结果'}</span></div></div>
           ${pipelineHtml(key, config)}
           <div class="icw-module-grid"><div><div class="icw-section-title"><div><h3>选择分析结果</h3><p>默认只显示医生关心的结果，处理依据按需展开。</p></div><span class="icw-selected-count">${config.waiting ? '后端接口待接入' : `已选择 ${chosen.length} 项`}</span></div><div class="icw-results">${resultRows}</div>
-          </div><aside class="icw-plan"><div class="icw-plan-head"><h3>本次方案</h3><p>根据所选结果自动形成，提交前确认数据范围。</p></div><ul class="icw-plan-list"><li><span>数据范围</span><b>${esc(config.demo.cohort)}<br>${esc(config.demo.subjects)} 位患者 · ${esc(config.demo.visits)} 次检查</b></li><li><span>处理来源</span><b>${esc(selectionSource(key, chosen))}</b></li><li><span>所选结果</span><b>${chosen.length ? chosen.map(item => esc(item.short)).join('、') : (config.waiting ? '尚未开放选择' : '尚未选择')}</b></li>${key === 'fmri' ? fmriPlanHtml(chosen) : `<li><span>结果配置</span><b>${chosen.length ? chosen.map(item => `${esc(item.short)}：${esc(resultPlanSummary(key, item))}`).join('<br>') : '—'}</b></li><li><span>计算起点</span><b>${esc(calculationStart(key, chosen))}</b></li>`}</ul><div class="icw-plan-note ${config.waiting || blocked ? 'is-waiting' : ''}"><i data-lucide="${config.waiting || blocked ? 'circle-alert' : 'shield-check'}" aria-hidden="true"></i>${config.waiting ? '这是流程和术语样板，不代表 EEG 后端能力已经接入。' : blocked ? '至少有一个已选指标尚未选择可用的空间单位。' : shared ? '功能连接与功能梯度的图谱和时间序列参数一致，可共享兼容中间产物；两项结果仍独立保存。' : key === 'fmri' ? '系统确定性匹配最深兼容缓存；参数不一致时仅重算分叉后的步骤。' : '运行前检查先决条件；不满足时说明原因，不自动替换研究方案。'}</div><button type="button" class="icw-primary-button" ${config.waiting || !chosen.length || blocked ? 'disabled' : ''} data-toast="${config.waiting ? 'EEG 后端接口尚未接入。' : '正式版本将在此进入数据范围确认。'}"><i data-lucide="clipboard-check" aria-hidden="true"></i>${config.waiting ? 'EEG 接口待接入' : '确认方案与数据范围'}</button></aside></div>
+          </div><aside class="icw-plan"><div class="icw-plan-head"><h3>本次方案</h3><p>${key === 'fmri' ? '先确认可分析范围，需要时再查看技术方案。' : '根据所选结果自动形成，提交前确认数据范围。'}</p></div><ul class="icw-plan-list"><li><span>数据范围</span><b>${esc(config.demo.cohort)}<br>${esc(config.demo.subjects)} 位患者 · ${esc(config.demo.visits)} 次检查</b></li><li><span>所选结果</span><b>${chosen.length ? chosen.map(item => esc(item.short)).join('、') : (config.waiting ? '尚未开放选择' : '尚未选择')}</b></li>${key === 'fmri' ? fmriPlanHtml(chosen) : `<li><span>处理来源</span><b>${esc(selectionSource(key, chosen))}</b></li><li><span>结果配置</span><b>${chosen.length ? chosen.map(item => `${esc(item.short)}：${esc(resultPlanSummary(key, item))}`).join('<br>') : '—'}</b></li><li><span>计算起点</span><b>${esc(calculationStart(key, chosen))}</b></li>`}</ul><div class="icw-plan-note ${config.waiting || blocked ? 'is-waiting' : ''}"><i data-lucide="${config.waiting || blocked ? 'circle-alert' : 'shield-check'}" aria-hidden="true"></i>${config.waiting ? '这是流程和术语样板，不代表 EEG 后端能力已经接入。' : blocked ? '至少有一个已选指标尚未选择可用的空间单位。' : key === 'fmri' && fmriReadiness(chosen).custom ? '参数调整已形成自定义草案；正式提交时应创建新方案版本。' : shared ? '功能连接与功能梯度可共享兼容中间产物；两项结果仍独立保存。' : key === 'fmri' ? '146 次检查可进入分析；另外 26 次将在分析前检查中说明原因。' : '运行前检查先决条件；不满足时说明原因，不自动替换研究方案。'}</div><button type="button" class="icw-primary-button" ${config.waiting || !chosen.length || blocked ? 'disabled' : ''} ${key === 'fmri' ? 'data-open-readiness' : `data-toast="${config.waiting ? 'EEG 后端接口尚未接入。' : '正式版本将在此进入数据范围确认。'}"`}><i data-lucide="clipboard-check" aria-hidden="true"></i>${config.waiting ? 'EEG 接口待接入' : key === 'fmri' ? '检查数据并继续' : '确认方案与数据范围'}</button></aside></div>
         </section>`;
       }
 
@@ -1524,6 +1604,9 @@
         const labelPage = event.target.closest('[data-label-page]');
         if (labelPage && !labelPage.disabled) { state.libraryLabelPage += labelPage.dataset.labelPage === 'next' ? 1 : -1; render(); return; }
         if (event.target.closest('#icw-brain-canvas')) { const label = atlasLabelFromPointer(event); if (label) { state.libraryFocus = label.id; root.querySelectorAll('[data-label-row]').forEach(row => row.classList.toggle('is-focused', Number(row.dataset.labelRow) === label.id)); drawAtlasViewer(); persist(); } return; }
+        if (event.target.closest('[data-open-readiness]')) { renderReadinessModal(); return; }
+        if (event.target.closest('[data-close-readiness]')) { readinessModal.hidden = true; return; }
+        if (event.target.closest('#icw-demo-create-task')) { readinessModal.hidden = true; showToast('样板已完成分析前检查；未创建真实任务或写入后端。'); return; }
         if (event.target.closest('#icw-open-mapping')) { modal.hidden = false; state.mapTab = 'scales'; mapTable('scales'); icons(); return; }
         const close = event.target.closest('[data-close-modal]'); if (close) { modal.hidden = true; return; }
         const mapTab = event.target.closest('[data-map-tab]');
