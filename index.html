@@ -1,0 +1,1090 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>量知 · 临床数据工作台</title>
+  <style>html,body{margin:0;min-width:320px;background:#f7f9f8}button,input,select,textarea{font:inherit}</style>
+  <script>
+    (() => {
+      const key = 'hainan-ui-prototype-state';
+      let privateContent = null;
+      try { privateContent = JSON.parse(localStorage.getItem(key) || 'null'); } catch (_) {}
+      window.openai = {
+        widgetState: { privateContent },
+        setWidgetState(payload) {
+          privateContent = payload && payload.privateContent || null;
+          localStorage.setItem(key, JSON.stringify(privateContent));
+          return Promise.resolve();
+        }
+      };
+    })();
+  </script>
+  <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+</head>
+<body>
+<div id="integrated-clinical-workbench" class="icw-root">
+  <style>
+    #integrated-clinical-workbench {
+      --icw-canvas: light-dark(#f7f9f8, #111614);
+      --icw-sidebar: light-dark(#f2f5f3, #171d1b);
+      --icw-surface: light-dark(#ffffff, #1d2421);
+      --icw-subtle: light-dark(#f5f8f6, #242c29);
+      --icw-muted: light-dark(#edf2ef, #2b3531);
+      --icw-text: light-dark(#25362f, #edf3f0);
+      --icw-text-2: light-dark(#5f6f68, #aab6b1);
+      --icw-text-3: light-dark(#7d8b85, #89968f);
+      --icw-line: light-dark(#dde5e1, #37433e);
+      --icw-line-soft: light-dark(#e8edea, #2b3531);
+      --icw-brand: light-dark(#176c58, #57c3a3);
+      --icw-brand-dark: light-dark(#155e4d, #83d8be);
+      --icw-brand-soft: light-dark(#e7f1ed, #173b31);
+      --icw-blue: light-dark(#315f8f, #8bb7e2);
+      --icw-blue-soft: light-dark(#edf3f9, #1c3042);
+      --icw-warning: light-dark(#985d13, #e5b66f);
+      --icw-warning-soft: light-dark(#fff8e8, #3b2d19);
+      --icw-danger: light-dark(#a3483e, #ed928c);
+      --icw-danger-soft: light-dark(#fff4f2, #3c211f);
+      --icw-shadow: light-dark(0 8px 24px rgba(23, 53, 42, .07), 0 12px 30px rgba(0, 0, 0, .22));
+      width: 100%; min-width: 0; overflow: hidden; position: relative;
+      color: var(--icw-text); background: var(--icw-canvas); color-scheme: light dark;
+      font-family: Inter, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif; letter-spacing: 0;
+    }
+    #integrated-clinical-workbench * { box-sizing: border-box; }
+    #integrated-clinical-workbench [hidden] { display: none !important; }
+    #integrated-clinical-workbench button,
+    #integrated-clinical-workbench input,
+    #integrated-clinical-workbench textarea,
+    #integrated-clinical-workbench select { font: inherit; letter-spacing: 0; color: inherit; }
+    #integrated-clinical-workbench button { cursor: inherit; }
+    #integrated-clinical-workbench .icw-shell { min-height: 820px; display: grid; grid-template-columns: 216px minmax(0, 1fr); }
+    #integrated-clinical-workbench .icw-sidebar {
+      position: relative; z-index: 5; min-width: 0; padding: 20px 13px; display: flex; flex-direction: column;
+      background: var(--icw-sidebar); border-right: 1px solid var(--icw-line);
+    }
+    #integrated-clinical-workbench .icw-brand { height: 58px; padding: 0 9px; display: flex; align-items: center; gap: 11px; }
+    #integrated-clinical-workbench .icw-brand-mark { width: 38px; height: 38px; flex: none; display: grid; place-items: center; border-radius: 10px; background: var(--icw-brand); color: #fff; }
+    #integrated-clinical-workbench .icw-brand-mark svg { width: 21px; height: 21px; }
+    #integrated-clinical-workbench .icw-brand strong { display: block; font-size: 19px; font-weight: 500; color: var(--icw-text); }
+    #integrated-clinical-workbench .icw-brand small { display: block; margin-top: 2px; color: var(--icw-text-3); font-size: 11px; }
+    #integrated-clinical-workbench .icw-nav { display: grid; gap: 4px; margin-top: 22px; }
+    #integrated-clinical-workbench .icw-nav-button,
+    #integrated-clinical-workbench .icw-subnav-button {
+      width: 100%; min-height: 43px; padding: 0 12px; display: flex; align-items: center; gap: 11px;
+      border: 0; border-radius: 9px; background: transparent; color: var(--icw-text-2); text-align: left; font-size: 13px;
+    }
+    #integrated-clinical-workbench .icw-nav-button:hover,
+    #integrated-clinical-workbench .icw-subnav-button:hover { background: var(--icw-muted); color: var(--icw-brand-dark); }
+    #integrated-clinical-workbench .icw-nav-button.is-active,
+    #integrated-clinical-workbench .icw-subnav-button.is-active { background: var(--icw-brand-soft); color: var(--icw-brand-dark); font-weight: 500; }
+    #integrated-clinical-workbench .icw-nav-button svg,
+    #integrated-clinical-workbench .icw-subnav-button svg { width: 18px; height: 18px; flex: none; }
+    #integrated-clinical-workbench .icw-nav-button .icw-chevron { width: 15px; height: 15px; margin-left: auto; }
+    #integrated-clinical-workbench .icw-subnav { display: grid; gap: 2px; margin: 2px 0 6px 18px; padding-left: 10px; border-left: 1px solid var(--icw-line); }
+    #integrated-clinical-workbench .icw-subnav-button { min-height: 34px; padding: 0 10px; border-radius: 7px; font-size: 12px; }
+    #integrated-clinical-workbench .icw-subnav-button svg { width: 15px; height: 15px; }
+    #integrated-clinical-workbench .icw-sidebar-foot { margin-top: auto; padding: 17px 8px 0; border-top: 1px solid var(--icw-line); }
+    #integrated-clinical-workbench .icw-security { display: flex; gap: 9px; color: var(--icw-text-2); font-size: 11px; }
+    #integrated-clinical-workbench .icw-security svg { width: 16px; height: 16px; flex: none; color: var(--icw-brand); }
+    #integrated-clinical-workbench .icw-security b,
+    #integrated-clinical-workbench .icw-security span { display: block; }
+    #integrated-clinical-workbench .icw-security b { font-weight: 500; }
+    #integrated-clinical-workbench .icw-security span { margin-top: 2px; color: var(--icw-text-3); }
+    #integrated-clinical-workbench .icw-main { min-width: 0; }
+    #integrated-clinical-workbench .icw-header { height: 70px; padding: 0 28px; display: flex; align-items: center; justify-content: space-between; gap: 14px; background: light-dark(rgba(251, 252, 251, .92), rgba(20, 26, 23, .92)); border-bottom: 1px solid var(--icw-line); }
+    #integrated-clinical-workbench .icw-header-left { min-width: 0; display: flex; align-items: center; gap: 8px; }
+    #integrated-clinical-workbench .icw-header h1 { margin: 0; font-size: 16px; line-height: 1.3; font-weight: 500; }
+    #integrated-clinical-workbench .icw-header p { margin: 4px 0 0; color: var(--icw-text-3); font-size: 11px; }
+    #integrated-clinical-workbench .icw-header-actions { display: flex; align-items: center; gap: 8px; }
+    #integrated-clinical-workbench .icw-demo-label { padding: 5px 8px; border-radius: 999px; color: var(--icw-brand-dark); background: var(--icw-brand-soft); font-size: 10px; white-space: nowrap; }
+    #integrated-clinical-workbench .icw-icon-button,
+    #integrated-clinical-workbench .icw-menu-button,
+    #integrated-clinical-workbench .icw-close-button { width: 34px; height: 34px; padding: 0; display: grid; place-items: center; border: 1px solid var(--icw-line); border-radius: 8px; background: var(--icw-surface); }
+    #integrated-clinical-workbench .icw-icon-button:hover,
+    #integrated-clinical-workbench .icw-menu-button:hover,
+    #integrated-clinical-workbench .icw-close-button:hover { background: var(--icw-subtle); }
+    #integrated-clinical-workbench .icw-icon-button svg,
+    #integrated-clinical-workbench .icw-menu-button svg,
+    #integrated-clinical-workbench .icw-close-button svg { width: 16px; height: 16px; }
+    #integrated-clinical-workbench .icw-menu-button,
+    #integrated-clinical-workbench .icw-close-button { display: none; }
+    #integrated-clinical-workbench .icw-content { max-width: 1500px; margin: auto; padding: 22px 28px 42px; }
+
+    /* Mature Agent workspace */
+    #integrated-clinical-workbench .icw-chat { max-width: 1180px; min-height: 690px; margin: 0 auto; display: flex; flex-direction: column; }
+    #integrated-clinical-workbench .icw-chat-tools { min-height: 42px; display: flex; justify-content: flex-end; align-items: center; gap: 4px; }
+    #integrated-clinical-workbench .icw-chat-tool { min-height: 32px; padding: 0 9px; display: inline-flex; align-items: center; gap: 6px; border: 0; border-radius: 7px; background: transparent; color: var(--icw-text-2); font-size: 12px; }
+    #integrated-clinical-workbench .icw-chat-tool:hover { color: var(--icw-brand-dark); background: var(--icw-brand-soft); }
+    #integrated-clinical-workbench .icw-chat-tool svg { width: 14px; height: 14px; }
+    #integrated-clinical-workbench .icw-thread { width: min(860px, 100%); margin: 0 auto; padding: 18px 0 12px; }
+    #integrated-clinical-workbench .icw-user-message { max-width: 74%; margin: 10px 0 18px auto; padding: 10px 14px; border-radius: 14px 14px 4px 14px; color: #fff; background: var(--icw-brand); font-size: 12px; line-height: 1.6; }
+    #integrated-clinical-workbench .icw-message-file { padding-bottom: 7px; margin-bottom: 5px; display: flex; align-items: center; gap: 6px; border-bottom: 1px solid rgba(255,255,255,.22); font-size: 10px; }
+    #integrated-clinical-workbench .icw-message-file svg { width: 14px; height: 14px; }
+    #integrated-clinical-workbench .icw-assistant { margin: 14px 0; display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 9px; }
+    #integrated-clinical-workbench .icw-agent-avatar { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 8px; color: var(--icw-brand); background: var(--icw-brand-soft); }
+    #integrated-clinical-workbench .icw-agent-avatar svg { width: 14px; height: 14px; }
+    #integrated-clinical-workbench .icw-agent-copy > p { margin: 3px 0 10px; color: var(--icw-text-2); font-size: 12px; line-height: 1.7; }
+    #integrated-clinical-workbench .icw-import-card { overflow: hidden; border: 1px solid var(--icw-line); border-radius: 12px; background: var(--icw-surface); box-shadow: var(--icw-shadow); }
+    #integrated-clinical-workbench .icw-import-flow { margin: 0; padding: 14px 16px 12px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); list-style: none; border-bottom: 1px solid var(--icw-line-soft); }
+    #integrated-clinical-workbench .icw-import-flow li { position: relative; display: flex; align-items: center; gap: 7px; color: var(--icw-text-3); font-size: 10px; }
+    #integrated-clinical-workbench .icw-import-flow li:not(:last-child)::after { content: ''; position: absolute; top: 12px; right: 8px; left: 36px; height: 1px; background: var(--icw-line); }
+    #integrated-clinical-workbench .icw-step-mark { position: relative; z-index: 1; width: 24px; height: 24px; flex: none; display: grid; place-items: center; border: 1px solid var(--icw-line); border-radius: 50%; background: var(--icw-surface); }
+    #integrated-clinical-workbench .icw-import-flow li.is-done,
+    #integrated-clinical-workbench .icw-import-flow li.is-current { color: var(--icw-brand-dark); font-weight: 500; }
+    #integrated-clinical-workbench .icw-import-flow li.is-done .icw-step-mark { background: var(--icw-brand-soft); border-color: transparent; }
+    #integrated-clinical-workbench .icw-import-flow li.is-current .icw-step-mark { color: #fff; background: var(--icw-brand); border-color: var(--icw-brand); }
+    #integrated-clinical-workbench .icw-import-head { padding: 13px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    #integrated-clinical-workbench .icw-file-title { display: flex; align-items: center; gap: 9px; min-width: 0; }
+    #integrated-clinical-workbench .icw-file-title > svg { width: 18px; height: 18px; flex: none; color: var(--icw-brand); }
+    #integrated-clinical-workbench .icw-file-title b,
+    #integrated-clinical-workbench .icw-file-title small { display: block; }
+    #integrated-clinical-workbench .icw-file-title b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; font-weight: 500; }
+    #integrated-clinical-workbench .icw-file-title small { margin-top: 2px; color: var(--icw-text-3); font-size: 10px; }
+    #integrated-clinical-workbench .icw-status { display: inline-flex; align-items: center; gap: 5px; color: var(--icw-warning); font-size: 10px; white-space: nowrap; }
+    #integrated-clinical-workbench .icw-status i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    #integrated-clinical-workbench .icw-import-metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 1px solid var(--icw-line-soft); border-bottom: 1px solid var(--icw-line-soft); }
+    #integrated-clinical-workbench .icw-import-metrics div { padding: 11px 14px; border-right: 1px solid var(--icw-line-soft); }
+    #integrated-clinical-workbench .icw-import-metrics div:last-child { border-right: 0; }
+    #integrated-clinical-workbench .icw-import-metrics b,
+    #integrated-clinical-workbench .icw-import-metrics span { display: block; }
+    #integrated-clinical-workbench .icw-import-metrics b { font-size: 14px; font-weight: 500; }
+    #integrated-clinical-workbench .icw-import-metrics span { margin-top: 2px; color: var(--icw-text-3); font-size: 9px; }
+    #integrated-clinical-workbench .icw-import-notice { margin: 12px 16px 0; padding: 10px 11px; display: flex; align-items: flex-start; gap: 8px; border: 1px solid light-dark(#ead7b9, #604725); border-radius: 8px; color: var(--icw-warning); background: var(--icw-warning-soft); font-size: 10px; line-height: 1.5; }
+    #integrated-clinical-workbench .icw-import-notice svg { width: 15px; height: 15px; flex: none; margin-top: 1px; }
+    #integrated-clinical-workbench .icw-import-notice b { display: block; font-weight: 500; }
+    #integrated-clinical-workbench .icw-mapping-entry { margin: 10px 16px 15px; padding: 11px 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border: 1px solid var(--icw-line); border-radius: 8px; background: var(--icw-subtle); }
+    #integrated-clinical-workbench .icw-mapping-entry b,
+    #integrated-clinical-workbench .icw-mapping-entry span { display: block; }
+    #integrated-clinical-workbench .icw-mapping-entry b { font-size: 11px; font-weight: 500; }
+    #integrated-clinical-workbench .icw-mapping-entry span { margin-top: 3px; color: var(--icw-text-2); font-size: 10px; line-height: 1.4; }
+    #integrated-clinical-workbench .icw-secondary-button,
+    #integrated-clinical-workbench .icw-primary-button { min-height: 34px; padding: 7px 10px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid var(--icw-line); border-radius: 8px; background: var(--icw-surface); font-size: 11px; white-space: nowrap; }
+    #integrated-clinical-workbench .icw-secondary-button:hover { background: var(--icw-muted); }
+    #integrated-clinical-workbench .icw-primary-button { color: #fff; border-color: var(--icw-brand); background: var(--icw-brand); }
+    #integrated-clinical-workbench .icw-primary-button:hover { background: var(--icw-brand-dark); }
+    #integrated-clinical-workbench .icw-secondary-button svg,
+    #integrated-clinical-workbench .icw-primary-button svg { width: 14px; height: 14px; }
+    #integrated-clinical-workbench .icw-composer { width: min(860px, calc(100% - 20px)); margin: auto auto 4px; padding: 10px 10px 8px 13px; display: grid; grid-template-columns: 1fr 36px 36px; align-items: end; border: 1px solid light-dark(#cfddd7, #42514a); border-radius: 18px; background: var(--icw-surface); box-shadow: 0 10px 30px rgba(23,53,42,.08); }
+    #integrated-clinical-workbench .icw-composer textarea { grid-column: 1 / 4; min-height: 54px; padding: 4px 5px; resize: none; border: 0; outline: 0; background: transparent; font-size: 13px; line-height: 1.5; }
+    #integrated-clinical-workbench .icw-attach-wrap { position: relative; grid-column: 2; }
+    #integrated-clinical-workbench .icw-composer-action { width: 36px; height: 36px; padding: 0; display: grid; place-items: center; border: 0; border-radius: 10px; background: var(--icw-brand-soft); color: var(--icw-brand-dark); }
+    #integrated-clinical-workbench .icw-composer-action svg { width: 16px; height: 16px; }
+    #integrated-clinical-workbench .icw-send { grid-column: 3; color: #fff; background: var(--icw-brand); }
+    #integrated-clinical-workbench .icw-attachment-menu { position: absolute; right: 0; bottom: 44px; z-index: 4; width: 214px; padding: 5px; border: 1px solid var(--icw-line); border-radius: 10px; background: var(--icw-surface); box-shadow: var(--icw-shadow); }
+    #integrated-clinical-workbench .icw-attachment-menu button { width: 100%; min-height: 35px; padding: 7px 8px; display: flex; align-items: center; gap: 8px; border: 0; border-radius: 7px; background: transparent; text-align: left; font-size: 11px; }
+    #integrated-clinical-workbench .icw-attachment-menu button:hover { background: var(--icw-subtle); }
+    #integrated-clinical-workbench .icw-attachment-menu button:disabled { color: var(--icw-text-3); }
+    #integrated-clinical-workbench .icw-attachment-menu svg { width: 14px; height: 14px; }
+    #integrated-clinical-workbench .icw-attachment-menu small { margin-left: auto; color: var(--icw-warning); font-size: 9px; }
+
+    /* Neuroimaging and EEG inside the same shell */
+    #integrated-clinical-workbench .icw-module { max-width: 1180px; margin: 0 auto; }
+    #integrated-clinical-workbench .icw-module-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; padding: 3px 0 20px; }
+    #integrated-clinical-workbench .icw-module-head h2 { margin: 0; font-size: 23px; line-height: 1.3; font-weight: 500; }
+    #integrated-clinical-workbench .icw-module-head p { max-width: 690px; margin: 7px 0 0; color: var(--icw-text-2); font-size: 12px; line-height: 1.55; }
+    #integrated-clinical-workbench .icw-source-button { min-height: 36px; padding: 7px 10px; display: inline-flex; align-items: center; gap: 7px; flex: none; border: 1px solid var(--icw-line); border-radius: 8px; background: var(--icw-surface); font-size: 11px; }
+    #integrated-clinical-workbench .icw-source-button svg { width: 15px; height: 15px; }
+    #integrated-clinical-workbench .icw-demo-data { margin: -4px 0 15px; padding: 11px 0; display: grid; grid-template-columns: minmax(175px, 1.4fr) repeat(4, minmax(80px, .7fr)); border-top: 1px solid var(--icw-line); border-bottom: 1px solid var(--icw-line); }
+    #integrated-clinical-workbench .icw-demo-data > div { min-width: 0; padding: 0 13px; border-right: 1px solid var(--icw-line-soft); }
+    #integrated-clinical-workbench .icw-demo-data > div:last-child { border-right: 0; }
+    #integrated-clinical-workbench .icw-demo-data b,
+    #integrated-clinical-workbench .icw-demo-data span { display: block; }
+    #integrated-clinical-workbench .icw-demo-data b { overflow: hidden; color: var(--icw-text); font-size: 13px; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
+    #integrated-clinical-workbench .icw-demo-data span { margin-top: 3px; color: var(--icw-text-3); font-size: 9px; }
+    #integrated-clinical-workbench .icw-demo-data .icw-cohort b { color: var(--icw-brand-dark); font-size: 11px; }
+    #integrated-clinical-workbench .icw-flow { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border: 1px solid var(--icw-line); border-radius: 10px; overflow: hidden; background: var(--icw-surface); }
+    #integrated-clinical-workbench .icw-flow-step { position: relative; min-width: 0; min-height: 112px; padding: 13px 14px; border: 0; border-right: 1px solid var(--icw-line); color: var(--icw-text); background: var(--icw-surface); text-align: left; transition: background .16s ease, color .16s ease; }
+    #integrated-clinical-workbench .icw-flow-step:hover { color: var(--icw-brand-dark); background: var(--icw-brand-soft); }
+    #integrated-clinical-workbench .icw-flow-step:focus-visible { z-index: 2; outline: 2px solid var(--icw-brand); outline-offset: -3px; }
+    #integrated-clinical-workbench .icw-flow-step:last-child { border-right: 0; }
+    #integrated-clinical-workbench .icw-flow-step:not(:last-child)::after { content: ''; position: absolute; z-index: 1; top: 28px; right: -5px; width: 8px; height: 8px; transform: rotate(45deg); border-top: 1px solid var(--icw-line); border-right: 1px solid var(--icw-line); background: var(--icw-surface); }
+    #integrated-clinical-workbench .icw-flow-top { display: flex; align-items: center; gap: 8px; color: var(--icw-brand-dark); }
+    #integrated-clinical-workbench .icw-flow-number { width: 22px; height: 22px; flex: none; display: grid; place-items: center; border-radius: 50%; background: var(--icw-brand-soft); font-size: 10px; }
+    #integrated-clinical-workbench .icw-flow-step b { font-size: 11px; font-weight: 500; }
+    #integrated-clinical-workbench .icw-flow-step small { display: block; margin: 6px 0 0 30px; color: var(--icw-text-3); font-size: 9px; line-height: 1.4; }
+    #integrated-clinical-workbench .icw-flow-queue { margin: 9px 0 0 30px; display: block; color: var(--icw-text-2); font-size: 9px; font-weight: 500; }
+    #integrated-clinical-workbench .icw-flow-queue.is-waiting { color: var(--icw-warning); }
+    #integrated-clinical-workbench .icw-flow-action { margin: 6px 0 0 30px; display: inline-flex; align-items: center; gap: 3px; color: var(--icw-brand-dark); font-size: 9px; font-weight: 500; }
+    #integrated-clinical-workbench .icw-flow-action svg { width: 12px; height: 12px; }
+    #integrated-clinical-workbench .icw-module-grid { margin-top: 22px; display: grid; grid-template-columns: minmax(0, 1fr) 290px; gap: 18px; align-items: start; }
+    #integrated-clinical-workbench .icw-module-grid > * { min-width: 0; }
+    #integrated-clinical-workbench .icw-section-title { margin-bottom: 10px; display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+    #integrated-clinical-workbench .icw-section-title h3 { margin: 0; font-size: 15px; font-weight: 500; }
+    #integrated-clinical-workbench .icw-section-title p { margin: 4px 0 0; color: var(--icw-text-3); font-size: 10px; }
+    #integrated-clinical-workbench .icw-selected-count { color: var(--icw-text-3); font-size: 10px; white-space: nowrap; }
+    #integrated-clinical-workbench .icw-results { overflow: hidden; border: 1px solid var(--icw-line); border-radius: 10px; background: var(--icw-surface); }
+    #integrated-clinical-workbench .icw-result { border-bottom: 1px solid var(--icw-line-soft); }
+    #integrated-clinical-workbench .icw-result:last-child { border-bottom: 0; }
+    #integrated-clinical-workbench .icw-result-main { min-height: 68px; padding: 12px 14px; display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; gap: 11px; }
+    #integrated-clinical-workbench .icw-result-check { width: 21px; height: 21px; padding: 0; display: grid; place-items: center; border: 1px solid var(--icw-line); border-radius: 5px; background: var(--icw-surface); }
+    #integrated-clinical-workbench .icw-result-check svg { display: none; width: 14px; height: 14px; }
+    #integrated-clinical-workbench .icw-result-check[aria-pressed="true"] { color: #fff; background: var(--icw-brand); border-color: var(--icw-brand); }
+    #integrated-clinical-workbench .icw-result-check[aria-pressed="true"] svg { display: block; }
+    #integrated-clinical-workbench .icw-result-check:disabled { opacity: .45; }
+    #integrated-clinical-workbench .icw-result-copy { min-width: 0; }
+    #integrated-clinical-workbench .icw-result-copy b { font-size: 12px; font-weight: 500; }
+    #integrated-clinical-workbench .icw-result-copy p { margin: 4px 0 0; color: var(--icw-text-2); font-size: 10px; line-height: 1.45; }
+    #integrated-clinical-workbench .icw-feature-tag { margin-left: 6px; padding: 3px 6px; border-radius: 999px; color: var(--icw-brand-dark); background: var(--icw-brand-soft); font-size: 9px; font-weight: 400; }
+    #integrated-clinical-workbench .icw-feature-tag.is-blue { color: var(--icw-blue); background: var(--icw-blue-soft); }
+    #integrated-clinical-workbench .icw-feature-tag.is-waiting { color: var(--icw-warning); background: var(--icw-warning-soft); }
+    #integrated-clinical-workbench .icw-result-output { color: var(--icw-text-3); font-size: 9px; text-align: right; white-space: nowrap; }
+    #integrated-clinical-workbench .icw-result-output b { display: block; margin-top: 2px; color: var(--icw-text-2); font-weight: 500; }
+    #integrated-clinical-workbench .icw-expand-button { width: 30px; height: 30px; padding: 0; display: grid; place-items: center; border: 0; border-radius: 6px; background: transparent; }
+    #integrated-clinical-workbench .icw-expand-button:hover { background: var(--icw-subtle); }
+    #integrated-clinical-workbench .icw-expand-button svg { width: 15px; height: 15px; transition: transform .18s ease; }
+    #integrated-clinical-workbench .icw-result.is-open .icw-expand-button svg { transform: rotate(180deg); }
+    #integrated-clinical-workbench .icw-result-detail { padding: 0 14px 13px 46px; }
+    #integrated-clinical-workbench .icw-result-detail dl { margin: 0; padding: 10px 11px; display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 6px 10px; border-radius: 7px; background: var(--icw-subtle); font-size: 10px; line-height: 1.45; }
+    #integrated-clinical-workbench .icw-result-detail dt { color: var(--icw-text-3); }
+    #integrated-clinical-workbench .icw-result-detail dd { margin: 0; color: var(--icw-text-2); }
+    #integrated-clinical-workbench .icw-result-space { margin-top: 10px; padding-top: 10px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-top: 1px solid var(--icw-line-soft); }
+    #integrated-clinical-workbench .icw-result-space-copy { min-width: 0; }
+    #integrated-clinical-workbench .icw-result-space-copy b,
+    #integrated-clinical-workbench .icw-result-space-copy small { display: block; }
+    #integrated-clinical-workbench .icw-result-space-copy b { font-size: 10px; font-weight: 500; }
+    #integrated-clinical-workbench .icw-result-space-copy small { margin-top: 3px; color: var(--icw-text-3); font-size: 9px; line-height: 1.45; }
+    #integrated-clinical-workbench .icw-result-space-value { flex: none; max-width: 48%; color: var(--icw-text-2); font-size: 9px; text-align: right; line-height: 1.45; overflow-wrap: anywhere; }
+    #integrated-clinical-workbench .icw-result-space .icw-atlas-picker { min-width: 210px; max-width: 48%; }
+    #integrated-clinical-workbench .icw-unit-options { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 5px; }
+    #integrated-clinical-workbench .icw-unit-options button { min-height: 29px; padding: 5px 8px; border: 1px solid var(--icw-line); border-radius: 7px; color: var(--icw-text-2); background: var(--icw-surface); font-size: 9px; }
+    #integrated-clinical-workbench .icw-unit-options button.is-active { color: var(--icw-brand-dark); border-color: var(--icw-brand); background: var(--icw-brand-soft); }
+    #integrated-clinical-workbench .icw-unit-options button:disabled { opacity: .46; }
+    #integrated-clinical-workbench .icw-atlas-row { margin-top: 10px; padding: 11px 13px; display: flex; align-items: center; justify-content: space-between; gap: 14px; border: 1px solid var(--icw-line); border-radius: 10px; background: var(--icw-surface); }
+    #integrated-clinical-workbench .icw-atlas-copy { display: flex; align-items: center; gap: 9px; min-width: 0; }
+    #integrated-clinical-workbench .icw-atlas-copy > span:first-child { width: 30px; height: 30px; flex: none; display: grid; place-items: center; border-radius: 7px; color: var(--icw-blue); background: var(--icw-blue-soft); }
+    #integrated-clinical-workbench .icw-atlas-copy svg { width: 15px; height: 15px; }
+    #integrated-clinical-workbench .icw-atlas-copy b,
+    #integrated-clinical-workbench .icw-atlas-copy small { display: block; }
+    #integrated-clinical-workbench .icw-atlas-copy b { font-size: 11px; font-weight: 500; }
+    #integrated-clinical-workbench .icw-atlas-copy small { margin-top: 3px; color: var(--icw-text-3); font-size: 9px; line-height: 1.4; }
+    #integrated-clinical-workbench .icw-atlas-picker { min-width: 230px; min-height: 36px; padding: 7px 9px; display: flex; align-items: center; justify-content: space-between; gap: 10px; border: 1px solid var(--icw-line); border-radius: 8px; background: var(--icw-surface); text-align: left; }
+    #integrated-clinical-workbench .icw-atlas-picker span { min-width: 0; }
+    #integrated-clinical-workbench .icw-atlas-picker b,
+    #integrated-clinical-workbench .icw-atlas-picker small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    #integrated-clinical-workbench .icw-atlas-picker b { font-size: 10px; font-weight: 500; }
+    #integrated-clinical-workbench .icw-atlas-picker small { margin-top: 2px; color: var(--icw-text-3); font-size: 8px; }
+    #integrated-clinical-workbench .icw-atlas-picker svg { width: 14px; height: 14px; flex: none; }
+    #integrated-clinical-workbench .icw-plan { overflow: hidden; border: 1px solid var(--icw-line); border-radius: 10px; background: var(--icw-surface); box-shadow: var(--icw-shadow); }
+    #integrated-clinical-workbench .icw-plan-head { padding: 13px 14px; border-bottom: 1px solid var(--icw-line); }
+    #integrated-clinical-workbench .icw-plan-head h3 { margin: 0; font-size: 13px; font-weight: 500; }
+    #integrated-clinical-workbench .icw-plan-head p { margin: 4px 0 0; color: var(--icw-text-3); font-size: 9px; line-height: 1.4; }
+    #integrated-clinical-workbench .icw-plan-list { margin: 0; padding: 3px 14px; list-style: none; }
+    #integrated-clinical-workbench .icw-plan-list li { padding: 9px 0; display: grid; grid-template-columns: 86px minmax(0, 1fr); gap: 9px; border-bottom: 1px solid var(--icw-line-soft); font-size: 10px; line-height: 1.4; }
+    #integrated-clinical-workbench .icw-plan-list li:last-child { border-bottom: 0; }
+    #integrated-clinical-workbench .icw-plan-list span { color: var(--icw-text-3); }
+    #integrated-clinical-workbench .icw-plan-list b { text-align: right; font-weight: 500; overflow-wrap: anywhere; }
+    #integrated-clinical-workbench .icw-plan-note { margin: 3px 14px 12px; padding: 9px 10px; display: flex; align-items: flex-start; gap: 7px; border-radius: 7px; color: var(--icw-brand-dark); background: var(--icw-brand-soft); font-size: 9px; line-height: 1.45; }
+    #integrated-clinical-workbench .icw-plan-note.is-waiting { color: var(--icw-warning); background: var(--icw-warning-soft); }
+    #integrated-clinical-workbench .icw-plan-note svg { width: 14px; height: 14px; flex: none; margin-top: 1px; }
+    #integrated-clinical-workbench .icw-plan .icw-primary-button { width: calc(100% - 28px); margin: 0 14px 14px; }
+    #integrated-clinical-workbench .icw-advanced { margin-top: 16px; }
+    #integrated-clinical-workbench .icw-atlas-modal { width: min(900px, 100%); max-height: 760px; display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--icw-line); border-radius: 12px; background: var(--icw-surface); box-shadow: 0 24px 70px rgba(16,39,31,.22); }
+    #integrated-clinical-workbench .icw-atlas-toolbar { padding: 10px 14px; display: grid; grid-template-columns: minmax(220px, 1fr) auto; gap: 10px; border-bottom: 1px solid var(--icw-line); }
+    #integrated-clinical-workbench .icw-atlas-search { min-height: 36px; padding: 7px 10px; border: 1px solid var(--icw-line); border-radius: 8px; background: var(--icw-surface); font-size: 10px; }
+    #integrated-clinical-workbench .icw-atlas-spaces { display: flex; gap: 3px; }
+    #integrated-clinical-workbench .icw-atlas-spaces button { min-height: 36px; padding: 7px 9px; border: 1px solid var(--icw-line); border-radius: 7px; background: var(--icw-surface); color: var(--icw-text-2); font-size: 9px; }
+    #integrated-clinical-workbench .icw-atlas-spaces button.is-active { color: var(--icw-brand-dark); border-color: var(--icw-brand); background: var(--icw-brand-soft); }
+    #integrated-clinical-workbench .icw-atlas-list { min-height: 0; overflow-y: auto; padding: 6px 14px; }
+    #integrated-clinical-workbench .icw-atlas-option { width: 100%; min-height: 55px; padding: 9px 8px; display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 12px; border: 0; border-bottom: 1px solid var(--icw-line-soft); background: transparent; text-align: left; }
+    #integrated-clinical-workbench .icw-atlas-option:hover { background: var(--icw-subtle); }
+    #integrated-clinical-workbench .icw-atlas-option.is-selected { background: var(--icw-brand-soft); }
+    #integrated-clinical-workbench .icw-atlas-option:disabled { opacity: .52; }
+    #integrated-clinical-workbench .icw-atlas-option:disabled:hover { background: transparent; }
+    #integrated-clinical-workbench .icw-atlas-option b,
+    #integrated-clinical-workbench .icw-atlas-option small { display: block; }
+    #integrated-clinical-workbench .icw-atlas-option b { font-size: 10px; font-weight: 500; }
+    #integrated-clinical-workbench .icw-atlas-option small { margin-top: 3px; color: var(--icw-text-3); font-size: 8px; }
+    #integrated-clinical-workbench .icw-atlas-space { color: var(--icw-text-2); font-size: 9px; white-space: nowrap; }
+    #integrated-clinical-workbench .icw-atlas-count { color: var(--icw-text-3); font-size: 9px; white-space: nowrap; }
+    #integrated-clinical-workbench .icw-atlas-empty { padding: 48px 20px; color: var(--icw-text-3); text-align: center; font-size: 10px; }
+    #integrated-clinical-workbench .icw-atlas-foot { padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-top: 1px solid var(--icw-line); color: var(--icw-text-3); font-size: 9px; }
+
+    /* Retained platform pages */
+    #integrated-clinical-workbench .icw-retained { max-width: 1180px; margin: 0 auto; }
+    #integrated-clinical-workbench .icw-intro { min-height: 106px; padding: 19px 21px; display: flex; align-items: center; justify-content: space-between; gap: 20px; border-radius: 12px; background: var(--icw-brand-soft); }
+    #integrated-clinical-workbench .icw-intro h2 { margin: 0; font-size: 22px; font-weight: 500; }
+    #integrated-clinical-workbench .icw-intro p { margin: 6px 0 0; color: var(--icw-text-2); font-size: 11px; }
+    #integrated-clinical-workbench .icw-retained-grid { margin-top: 16px; display: grid; grid-template-columns: 1.35fr .85fr; gap: 14px; }
+    #integrated-clinical-workbench .icw-panel { min-width: 0; overflow: hidden; border: 1px solid var(--icw-line); border-radius: 12px; background: var(--icw-surface); box-shadow: var(--icw-shadow); }
+    #integrated-clinical-workbench .icw-panel-head { padding: 15px 17px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--icw-line); }
+    #integrated-clinical-workbench .icw-panel-head h3 { margin: 0; font-size: 13px; font-weight: 500; }
+    #integrated-clinical-workbench .icw-panel-head p { margin: 3px 0 0; color: var(--icw-text-3); font-size: 9px; }
+    #integrated-clinical-workbench .icw-empty-state { min-height: 220px; padding: 28px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: var(--icw-text-3); }
+    #integrated-clinical-workbench .icw-empty-state svg { width: 26px; height: 26px; margin-bottom: 10px; }
+    #integrated-clinical-workbench .icw-empty-state b { color: var(--icw-text-2); font-size: 12px; font-weight: 500; }
+    #integrated-clinical-workbench .icw-empty-state span { max-width: 290px; margin-top: 5px; font-size: 10px; line-height: 1.5; }
+    #integrated-clinical-workbench .icw-table-head { padding: 10px 15px; display: grid; grid-template-columns: 1.2fr 1fr .8fr .8fr; gap: 12px; color: var(--icw-text-3); background: var(--icw-subtle); border-bottom: 1px solid var(--icw-line); font-size: 9px; }
+
+    /* Mapping editor derived from the existing import flow */
+    #integrated-clinical-workbench .icw-modal-layer { position: absolute; inset: 0; z-index: 20; padding: 28px; display: grid; place-items: center; background: light-dark(rgba(20, 36, 29, .42), rgba(0, 0, 0, .62)); }
+    #integrated-clinical-workbench .icw-modal { width: min(920px, 100%); max-height: 760px; overflow: hidden; border: 1px solid var(--icw-line); border-radius: 12px; background: var(--icw-surface); box-shadow: 0 24px 70px rgba(16,39,31,.22); }
+    #integrated-clinical-workbench .icw-modal-head { min-height: 58px; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--icw-line); }
+    #integrated-clinical-workbench .icw-modal-title { display: flex; align-items: center; gap: 9px; min-width: 0; }
+    #integrated-clinical-workbench .icw-modal-title > svg { width: 18px; height: 18px; color: var(--icw-brand); }
+    #integrated-clinical-workbench .icw-modal-title h2 { margin: 0; font-size: 14px; font-weight: 500; }
+    #integrated-clinical-workbench .icw-modal-title small { display: block; margin-top: 2px; color: var(--icw-text-3); font-size: 9px; }
+    #integrated-clinical-workbench .icw-modal-tabs { padding: 8px 14px 0; display: flex; gap: 3px; border-bottom: 1px solid var(--icw-line); }
+    #integrated-clinical-workbench .icw-modal-tabs button { min-height: 34px; padding: 7px 10px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--icw-text-2); font-size: 11px; }
+    #integrated-clinical-workbench .icw-modal-tabs button.is-active { color: var(--icw-brand-dark); border-bottom-color: var(--icw-brand); font-weight: 500; }
+    #integrated-clinical-workbench .icw-modal-tools { padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; color: var(--icw-text-2); font-size: 10px; }
+    #integrated-clinical-workbench .icw-ai-note { display: inline-flex; align-items: center; gap: 6px; }
+    #integrated-clinical-workbench .icw-ai-note svg { width: 14px; height: 14px; color: var(--icw-brand); }
+    #integrated-clinical-workbench .icw-map-table-wrap { max-height: 430px; overflow: auto; border-top: 1px solid var(--icw-line); border-bottom: 1px solid var(--icw-line); }
+    #integrated-clinical-workbench .icw-map-table { width: 100%; min-width: 760px; border-collapse: collapse; table-layout: fixed; font-size: 10px; }
+    #integrated-clinical-workbench .icw-map-table th { padding: 9px 10px; text-align: left; color: var(--icw-text-2); background: var(--icw-subtle); font-weight: 500; }
+    #integrated-clinical-workbench .icw-map-table td { padding: 9px 10px; vertical-align: top; border-top: 1px solid var(--icw-line-soft); }
+    #integrated-clinical-workbench .icw-map-table tr.needs-review td { background: var(--icw-warning-soft); }
+    #integrated-clinical-workbench .icw-map-table td b,
+    #integrated-clinical-workbench .icw-map-table td small { display: block; }
+    #integrated-clinical-workbench .icw-map-table td b { font-weight: 500; }
+    #integrated-clinical-workbench .icw-map-table td small { margin-top: 3px; color: var(--icw-text-3); }
+    #integrated-clinical-workbench .icw-map-table select,
+    #integrated-clinical-workbench .icw-map-table input { width: 100%; min-height: 32px; padding: 5px 7px; border: 1px solid var(--icw-line); border-radius: 6px; background: var(--icw-surface); font-size: 10px; }
+    #integrated-clinical-workbench .icw-modal-footer { padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    #integrated-clinical-workbench .icw-modal-footer span { color: var(--icw-text-3); font-size: 9px; }
+    #integrated-clinical-workbench .icw-modal-actions { display: flex; gap: 7px; }
+    #integrated-clinical-workbench .icw-settings-modal { width: min(900px, 100%); max-height: 780px; display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--icw-line); border-radius: 12px; background: var(--icw-surface); box-shadow: 0 24px 70px rgba(16,39,31,.22); }
+    #integrated-clinical-workbench .icw-settings-context { padding: 10px 14px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; border-bottom: 1px solid var(--icw-line); background: var(--icw-subtle); }
+    #integrated-clinical-workbench .icw-settings-context div { padding: 3px 10px; border-right: 1px solid var(--icw-line); }
+    #integrated-clinical-workbench .icw-settings-context div:last-child { border-right: 0; }
+    #integrated-clinical-workbench .icw-settings-context span,
+    #integrated-clinical-workbench .icw-settings-context b { display: block; }
+    #integrated-clinical-workbench .icw-settings-context span { color: var(--icw-text-3); font-size: 9px; }
+    #integrated-clinical-workbench .icw-settings-context b { margin-top: 3px; font-size: 10px; font-weight: 500; }
+    #integrated-clinical-workbench .icw-settings-body { min-height: 0; overflow-y: auto; padding: 4px 16px 14px; }
+    #integrated-clinical-workbench .icw-setting-intro { margin: 10px 0; padding: 9px 10px; display: flex; gap: 7px; border-radius: 7px; color: var(--icw-text-2); background: var(--icw-subtle); font-size: 10px; line-height: 1.5; }
+    #integrated-clinical-workbench .icw-setting-intro svg { width: 14px; height: 14px; flex: none; margin-top: 1px; color: var(--icw-brand); }
+    #integrated-clinical-workbench .icw-setting-intro.is-warning { color: var(--icw-warning); background: var(--icw-warning-soft); }
+    #integrated-clinical-workbench .icw-setting-group { margin-top: 11px; border-top: 1px solid var(--icw-line); }
+    #integrated-clinical-workbench .icw-setting-group h3 { margin: 0; padding: 10px 0 4px; font-size: 11px; font-weight: 500; }
+    #integrated-clinical-workbench .icw-setting-row { min-height: 59px; padding: 9px 0; display: grid; grid-template-columns: minmax(190px, 1.3fr) minmax(250px, 1fr); gap: 18px; align-items: center; border-bottom: 1px solid var(--icw-line-soft); }
+    #integrated-clinical-workbench .icw-setting-row:last-child { border-bottom: 0; }
+    #integrated-clinical-workbench .icw-setting-copy b,
+    #integrated-clinical-workbench .icw-setting-copy small { display: block; }
+    #integrated-clinical-workbench .icw-setting-copy b { font-size: 10px; font-weight: 500; }
+    #integrated-clinical-workbench .icw-setting-copy small { margin-top: 3px; color: var(--icw-text-3); font-size: 9px; line-height: 1.45; }
+    #integrated-clinical-workbench .icw-setting-control { min-width: 0; display: flex; align-items: center; justify-content: flex-end; gap: 7px; }
+    #integrated-clinical-workbench .icw-setting-control select,
+    #integrated-clinical-workbench .icw-setting-control input[type="number"] { width: 100%; min-height: 34px; padding: 6px 8px; border: 1px solid var(--icw-line); border-radius: 7px; background: var(--icw-surface); font-size: 10px; }
+    #integrated-clinical-workbench .icw-segmented { display: inline-flex; max-width: 100%; padding: 2px; border-radius: 8px; background: var(--icw-muted); }
+    #integrated-clinical-workbench .icw-segmented button { min-height: 30px; padding: 5px 8px; flex: 1; border: 0; border-radius: 6px; background: transparent; color: var(--icw-text-2); font-size: 9px; white-space: nowrap; }
+    #integrated-clinical-workbench .icw-segmented button.is-active { color: var(--icw-brand-dark); background: var(--icw-surface); box-shadow: 0 1px 3px rgba(23,53,42,.1); font-weight: 500; }
+    #integrated-clinical-workbench .icw-switch-row { display: flex; justify-content: flex-end; align-items: center; gap: 8px; }
+    #integrated-clinical-workbench .icw-switch { width: 36px; height: 21px; padding: 2px; border: 0; border-radius: 999px; background: var(--icw-line); }
+    #integrated-clinical-workbench .icw-switch::before { content: ''; display: block; width: 17px; height: 17px; border-radius: 50%; background: var(--icw-surface); box-shadow: 0 1px 2px rgba(0,0,0,.12); transition: transform .15s ease; }
+    #integrated-clinical-workbench .icw-switch[aria-checked="true"] { background: var(--icw-brand); }
+    #integrated-clinical-workbench .icw-switch[aria-checked="true"]::before { transform: translateX(15px); }
+    #integrated-clinical-workbench .icw-switch-row span { min-width: 35px; color: var(--icw-text-3); font-size: 9px; }
+    #integrated-clinical-workbench .icw-setting-foot { padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-top: 1px solid var(--icw-line); }
+    #integrated-clinical-workbench .icw-setting-foot > span { color: var(--icw-text-3); font-size: 9px; line-height: 1.4; }
+    #integrated-clinical-workbench .icw-toast { position: absolute; right: 18px; bottom: 18px; z-index: 30; max-width: 320px; padding: 10px 12px; display: flex; align-items: flex-start; gap: 8px; border: 1px solid var(--icw-line); border-radius: 8px; background: var(--icw-surface); box-shadow: var(--icw-shadow); font-size: 10px; line-height: 1.45; }
+    #integrated-clinical-workbench .icw-toast svg { width: 14px; height: 14px; flex: none; color: var(--icw-brand); }
+    #integrated-clinical-workbench .icw-scrim { display: none; }
+
+    @media (max-width: 880px) {
+      #integrated-clinical-workbench .icw-shell { grid-template-columns: 1fr; }
+      #integrated-clinical-workbench .icw-sidebar { position: absolute; inset: 0 auto 0 0; width: 216px; transform: translateX(-105%); transition: transform .18s ease; box-shadow: var(--icw-shadow); }
+      #integrated-clinical-workbench .icw-sidebar.is-open { transform: none; }
+      #integrated-clinical-workbench .icw-menu-button,
+      #integrated-clinical-workbench .icw-close-button { display: grid; }
+      #integrated-clinical-workbench .icw-close-button { position: absolute; top: 21px; right: 10px; }
+      #integrated-clinical-workbench .icw-scrim.is-open { position: absolute; inset: 0; z-index: 4; display: block; border: 0; background: light-dark(rgba(18,32,26,.34), rgba(0,0,0,.58)); }
+      #integrated-clinical-workbench .icw-module-grid,
+      #integrated-clinical-workbench .icw-retained-grid { grid-template-columns: 1fr; }
+      #integrated-clinical-workbench .icw-plan { box-shadow: none; }
+    }
+    @media (max-width: 620px) {
+      #integrated-clinical-workbench .icw-header { height: 62px; padding: 0 12px; }
+      #integrated-clinical-workbench .icw-header p { display: none; }
+      #integrated-clinical-workbench .icw-content { padding: 14px 10px 26px; }
+      #integrated-clinical-workbench .icw-chat-tools { justify-content: flex-start; overflow-x: auto; }
+      #integrated-clinical-workbench .icw-import-flow { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px 0; }
+      #integrated-clinical-workbench .icw-import-flow li:nth-child(2)::after { display: none; }
+      #integrated-clinical-workbench .icw-import-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      #integrated-clinical-workbench .icw-import-metrics div:nth-child(2) { border-right: 0; }
+      #integrated-clinical-workbench .icw-import-metrics div:nth-child(-n+2) { border-bottom: 1px solid var(--icw-line-soft); }
+      #integrated-clinical-workbench .icw-mapping-entry { align-items: stretch; flex-direction: column; }
+      #integrated-clinical-workbench .icw-mapping-entry button { width: 100%; }
+      #integrated-clinical-workbench .icw-flow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      #integrated-clinical-workbench .icw-flow-step { border-bottom: 1px solid var(--icw-line); }
+      #integrated-clinical-workbench .icw-flow-step:nth-child(2) { border-right: 0; }
+      #integrated-clinical-workbench .icw-flow-step:nth-child(2)::after { display: none; }
+      #integrated-clinical-workbench .icw-flow-step:nth-child(n+3) { border-bottom: 0; }
+      #integrated-clinical-workbench .icw-module-head { display: block; }
+      #integrated-clinical-workbench .icw-source-button { margin-top: 11px; }
+      #integrated-clinical-workbench .icw-demo-data { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      #integrated-clinical-workbench .icw-demo-data > div { padding: 7px 10px; border-bottom: 1px solid var(--icw-line-soft); }
+      #integrated-clinical-workbench .icw-demo-data > div:nth-child(2n) { border-right: 0; }
+      #integrated-clinical-workbench .icw-demo-data > div:last-child { border-bottom: 0; }
+      #integrated-clinical-workbench .icw-demo-data .icw-cohort { grid-column: 1 / -1; }
+      #integrated-clinical-workbench .icw-result-main { grid-template-columns: auto minmax(0, 1fr) auto; }
+      #integrated-clinical-workbench .icw-result-output { grid-column: 2; text-align: left; }
+      #integrated-clinical-workbench .icw-expand-button { grid-column: 3; grid-row: 1 / span 2; }
+      #integrated-clinical-workbench .icw-result-detail { padding-left: 45px; }
+      #integrated-clinical-workbench .icw-result-detail dl { grid-template-columns: 1fr; gap: 3px; }
+      #integrated-clinical-workbench .icw-result-detail dd { margin-bottom: 5px; }
+      #integrated-clinical-workbench .icw-atlas-row { align-items: stretch; flex-direction: column; }
+      #integrated-clinical-workbench .icw-atlas-picker { width: 100%; min-width: 0; }
+      #integrated-clinical-workbench .icw-result-space { align-items: stretch; flex-direction: column; }
+      #integrated-clinical-workbench .icw-result-space-value,
+      #integrated-clinical-workbench .icw-result-space .icw-atlas-picker { width: 100%; max-width: none; text-align: left; }
+      #integrated-clinical-workbench .icw-atlas-toolbar { grid-template-columns: 1fr; }
+      #integrated-clinical-workbench .icw-atlas-spaces { overflow-x: auto; }
+      #integrated-clinical-workbench .icw-atlas-option { grid-template-columns: minmax(0, 1fr) auto; }
+      #integrated-clinical-workbench .icw-atlas-count { display: none; }
+      #integrated-clinical-workbench .icw-modal-layer { padding: 8px; }
+      #integrated-clinical-workbench .icw-modal { max-height: 790px; }
+      #integrated-clinical-workbench .icw-modal-tools,
+      #integrated-clinical-workbench .icw-modal-footer { align-items: stretch; flex-direction: column; }
+      #integrated-clinical-workbench .icw-modal-actions { width: 100%; }
+      #integrated-clinical-workbench .icw-modal-actions button { flex: 1; }
+      #integrated-clinical-workbench .icw-settings-context { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      #integrated-clinical-workbench .icw-settings-context div:nth-child(2) { border-right: 0; }
+      #integrated-clinical-workbench .icw-settings-context div:nth-child(-n+2) { margin-bottom: 6px; }
+      #integrated-clinical-workbench .icw-setting-row { grid-template-columns: 1fr; gap: 7px; align-items: stretch; }
+      #integrated-clinical-workbench .icw-setting-control,
+      #integrated-clinical-workbench .icw-switch-row { justify-content: flex-start; }
+      #integrated-clinical-workbench .icw-segmented { width: 100%; overflow-x: auto; }
+      #integrated-clinical-workbench .icw-setting-foot { align-items: stretch; flex-direction: column; }
+    }
+    @media (max-width: 360px) {
+      #integrated-clinical-workbench .icw-demo-label { display: none; }
+      #integrated-clinical-workbench .icw-flow { grid-template-columns: 1fr; }
+      #integrated-clinical-workbench .icw-flow-step { border-right: 0; border-bottom: 1px solid var(--icw-line) !important; }
+      #integrated-clinical-workbench .icw-flow-step:last-child { border-bottom: 0 !important; }
+      #integrated-clinical-workbench .icw-flow-step::after { display: none; }
+    }
+  </style>
+
+  <div class="icw-shell">
+    <aside class="icw-sidebar" aria-label="主导航">
+      <button type="button" class="icw-close-button" aria-label="关闭导航"><i data-lucide="x" aria-hidden="true"></i></button>
+      <div class="icw-brand">
+        <span class="icw-brand-mark"><i data-lucide="activity" aria-hidden="true"></i></span>
+        <span><strong>量知</strong><small>临床数据工作台</small></span>
+      </div>
+      <nav class="icw-nav">
+        <button type="button" class="icw-nav-button is-active" data-page="workspace"><i data-lucide="sparkles" aria-hidden="true"></i><span>Agent 工作台</span><i class="icw-chevron" data-lucide="chevron-right" aria-hidden="true"></i></button>
+        <button type="button" class="icw-nav-button" data-page="dashboard"><i data-lucide="layout-dashboard" aria-hidden="true"></i><span>数据总览</span></button>
+        <button type="button" class="icw-nav-button" data-page="patients"><i data-lucide="users" aria-hidden="true"></i><span>患者随访</span></button>
+        <button type="button" class="icw-nav-button" data-page="catalog"><i data-lucide="book-open" aria-hidden="true"></i><span>字段字典</span></button>
+        <button type="button" class="icw-nav-button" data-page="history"><i data-lucide="history" aria-hidden="true"></i><span>导入历史</span></button>
+        <button type="button" class="icw-nav-button" data-parent="imaging" aria-expanded="false"><i data-lucide="brain-circuit" aria-hidden="true"></i><span>神经影像</span><i class="icw-chevron" data-lucide="chevron-right" aria-hidden="true"></i></button>
+        <div class="icw-subnav" data-subnav="imaging" hidden>
+          <button type="button" class="icw-subnav-button" data-page="fmri"><i data-lucide="activity" aria-hidden="true"></i><span>静息态 fMRI</span></button>
+          <button type="button" class="icw-subnav-button" data-page="dwi"><i data-lucide="waypoints" aria-hidden="true"></i><span>DWI / DTI</span></button>
+          <button type="button" class="icw-subnav-button" data-page="t1"><i data-lucide="scan-line" aria-hidden="true"></i><span>T1 加权结构像</span></button>
+        </div>
+        <button type="button" class="icw-nav-button" data-parent="ephys" aria-expanded="false"><i data-lucide="waves" aria-hidden="true"></i><span>神经电生理</span><i class="icw-chevron" data-lucide="chevron-right" aria-hidden="true"></i></button>
+        <div class="icw-subnav" data-subnav="ephys" hidden>
+          <button type="button" class="icw-subnav-button" data-page="eeg"><i data-lucide="audio-waveform" aria-hidden="true"></i><span>静息态 EEG</span></button>
+        </div>
+      </nav>
+      <div class="icw-sidebar-foot"><div class="icw-security"><i data-lucide="file-check-2" aria-hidden="true"></i><span><b>本地数据库</b><span>导入前逐项校验</span></span></div></div>
+    </aside>
+    <button type="button" class="icw-scrim" aria-label="关闭导航"></button>
+
+    <div class="icw-main">
+      <header class="icw-header">
+        <div class="icw-header-left">
+          <button type="button" class="icw-menu-button" aria-label="打开导航"><i data-lucide="menu" aria-hidden="true"></i></button>
+          <div><h1 id="icw-page-title">Agent 工作台</h1><p id="icw-page-subtitle">临床数据管理与分析</p></div>
+        </div>
+        <div class="icw-header-actions"><span class="icw-demo-label">界面样板 · 不连接真实数据</span><button type="button" class="icw-icon-button" aria-label="刷新"><i data-lucide="refresh-cw" aria-hidden="true"></i></button></div>
+      </header>
+      <main class="icw-content" id="icw-content" aria-live="polite"></main>
+    </div>
+  </div>
+
+  <div class="icw-modal-layer" id="icw-mapping-modal" hidden>
+    <section class="icw-modal" role="dialog" aria-modal="true" aria-labelledby="icw-modal-title">
+      <header class="icw-modal-head">
+        <div class="icw-modal-title"><i data-lucide="file-spreadsheet" aria-hidden="true"></i><span><h2 id="icw-modal-title">配置字段映射</h2><small>量表随访_演示.xlsx · 展示样例</small></span></div>
+        <button type="button" class="icw-icon-button" data-close-modal aria-label="关闭"><i data-lucide="x" aria-hidden="true"></i></button>
+      </header>
+      <div class="icw-modal-tabs" role="tablist" aria-label="字段映射类别">
+        <button type="button" class="is-active" role="tab" aria-selected="true" data-map-tab="scales">量表题目与分数</button>
+        <button type="button" role="tab" aria-selected="false" data-map-tab="fields">一般字段</button>
+      </div>
+      <div class="icw-modal-tools"><span class="icw-ai-note"><i data-lucide="sparkles" aria-hidden="true"></i>Agent 已预填可识别项，仍需人工确认</span><span id="icw-map-progress">3 列待核对</span></div>
+      <div class="icw-map-table-wrap"><table class="icw-map-table"><thead id="icw-map-head"></thead><tbody id="icw-map-body"></tbody></table></div>
+      <footer class="icw-modal-footer"><span>保存量表模板后，相同结构的工作簿可复用映射。</span><div class="icw-modal-actions"><button type="button" class="icw-secondary-button" data-close-modal>取消</button><button type="button" class="icw-primary-button" id="icw-confirm-map"><i data-lucide="check" aria-hidden="true"></i>确认映射并继续</button></div></footer>
+    </section>
+  </div>
+  <div class="icw-modal-layer" id="icw-settings-modal" hidden>
+    <section class="icw-settings-modal" role="dialog" aria-modal="true" aria-labelledby="icw-settings-title">
+      <header class="icw-modal-head">
+        <div class="icw-modal-title"><i data-lucide="route" aria-hidden="true"></i><span><h2 id="icw-settings-title">阶段详情</h2><small id="icw-settings-subtitle">静息态 fMRI · 数据接入</small></span></div>
+        <button type="button" class="icw-icon-button" data-close-settings aria-label="关闭阶段详情"><i data-lucide="x" aria-hidden="true"></i></button>
+      </header>
+      <div class="icw-settings-context" id="icw-settings-context"></div>
+      <div class="icw-settings-body" id="icw-settings-body"></div>
+      <footer class="icw-setting-foot"><span id="icw-settings-foot-note">当前为样板展示，不会运行任务。</span><div class="icw-modal-actions"><button type="button" class="icw-secondary-button" id="icw-reset-settings">恢复项目默认</button><button type="button" class="icw-primary-button" id="icw-apply-settings"><i data-lucide="check" aria-hidden="true"></i>保存样板设置</button></div></footer>
+    </section>
+  </div>
+  <div class="icw-modal-layer" id="icw-atlas-modal" hidden>
+    <section class="icw-atlas-modal" role="dialog" aria-modal="true" aria-labelledby="icw-atlas-title">
+      <header class="icw-modal-head">
+        <div class="icw-modal-title"><i data-lucide="map" aria-hidden="true"></i><span><h2 id="icw-atlas-title">从平台图谱库选择</h2><small>图谱名称、版本、模板空间和标签数量共同构成图谱身份</small></span></div>
+        <button type="button" class="icw-icon-button" data-close-atlas aria-label="关闭图谱库"><i data-lucide="x" aria-hidden="true"></i></button>
+      </header>
+      <div class="icw-atlas-toolbar"><input class="icw-atlas-search" id="icw-atlas-search" type="search" placeholder="搜索图谱名称或家族" aria-label="搜索平台图谱库"><div class="icw-atlas-spaces" id="icw-atlas-spaces"></div></div>
+      <div class="icw-atlas-list" id="icw-atlas-list"></div>
+      <footer class="icw-atlas-foot"><span id="icw-atlas-total">平台当前已导入 57 个离散标签体图谱</span><div class="icw-modal-actions"><span>可同时选择多个图谱</span><button type="button" class="icw-primary-button" id="icw-apply-atlas"><i data-lucide="check" aria-hidden="true"></i>应用图谱选择</button></div></footer>
+    </section>
+  </div>
+  <div class="icw-toast" id="icw-toast" role="status" aria-live="polite" hidden><i data-lucide="info" aria-hidden="true"></i><span></span></div>
+
+  <script>
+    (() => {
+      const root = document.getElementById('integrated-clinical-workbench');
+      if (!root) return;
+      const content = root.querySelector('#icw-content');
+      const pageTitle = root.querySelector('#icw-page-title');
+      const pageSubtitle = root.querySelector('#icw-page-subtitle');
+      const modal = root.querySelector('#icw-mapping-modal');
+      const settingsModal = root.querySelector('#icw-settings-modal');
+      const atlasModal = root.querySelector('#icw-atlas-modal');
+      const toast = root.querySelector('#icw-toast');
+      const sidebar = root.querySelector('.icw-sidebar');
+      const scrim = root.querySelector('.icw-scrim');
+
+      const imaging = {
+        fmri: {
+          title: '静息态 fMRI', subtitle: '神经影像 · 静息态 fMRI',
+          lead: '医生选择需要的结果，系统匹配合格的预处理结果、fMRI 后处理方案与输出空间。',
+          demo: { cohort:'认知障碍随访队列（演示）', subjects:128, visits:196, inputs:172, results:146 },
+          source: 'fMRIPrep / DeepPrep', output: '体素图、脑区表或连接矩阵',
+          flow:[['数据接入','DICOM 检查、BIDS 转换与采集质控','intake',4,4],['fMRI 预处理','校正、配准与空间标准化','preprocess',12,9],['fMRI 后处理','混杂回归、高头动帧剔除与时间滤波','postprocess',5,4],['结果提取','ALFF/fALFF、ReHo 或功能连接','features',5,4]],
+          selected: ['alff', 'reho'],
+          results: [
+            { id:'alff', title:'低频振幅（ALFF）/ 低频振幅分数（fALFF）', short:'ALFF / fALFF', tag:'常用', summary:'反映静息态信号低频振荡的幅度及其相对占比。', output:'体素图 / 脑区表', prereq:'fMRIPrep 或 DeepPrep 结果；读取未做带通滤波的后处理时间序列。', rule:'剔除帧先插值后进行频谱计算；频段用于频谱取值，不等同于预先带通滤波。', files:'ALFF、fALFF 图及可选的脑区均值表。' },
+            { id:'reho', title:'局部一致性（ReHo）', short:'ReHo', tag:'常用', summary:'衡量局部相邻体素时间序列的一致程度。', output:'体素图 / 脑区表', prereq:'fMRIPrep 或 DeepPrep 结果及一条可用的后处理管线。', rule:'在未平滑时间序列上计算 Kendall 和谐系数；派生体素图可在计算后平滑。', files:'ReHo 体素图及可选的脑区均值表。' },
+            { id:'fc', title:'静息态功能连接', short:'功能连接', tag:'需图谱', blue:true, summary:'计算脑区平均时间序列之间的 Pearson 相关并进行 Fisher z 变换。', output:'脑区表 / 连接矩阵', prereq:'fMRIPrep 或 DeepPrep 结果、可用后处理管线及一个脑区图谱。', rule:'每个脑区先汇总时间序列，再计算两两相关；矩阵对角线为空值。', files:'Fisher-z 连接矩阵与各脑区平均连接强度。' }
+          ]
+        },
+        dwi: {
+          title:'DWI / DTI', subtitle:'神经影像 · DWI / DTI', lead:'从扩散像结果中选择需要的定量指标，平台保留真实处理来源与空间变换记录。',
+          demo:{ cohort:'认知障碍随访队列（演示）', subjects:128, visits:196, inputs:84, results:76 },
+          source:'QSIPrep', output:'FA、MD、AD、RD 体素图或脑区表',
+          flow:[['数据接入','DICOM 检查、BIDS 转换与梯度信息核对','intake',2,2],['DWI 预处理','畸变、运动、涡流与偏置场校正','preprocess',3,3],['扩散模型拟合','在设定 b 值范围内拟合 DTI','tensor',2,2],['结果提取','FA、MD、AD、RD 与脑区汇总','features',1,1]],
+          selected:['dti'],
+          results:[{ id:'dti', title:'扩散张量指标（DTI）', short:'FA、MD、AD、RD', tag:'QSIPrep', summary:'输出各向异性分数及平均、轴向和径向弥散率。', output:'体素图 / 脑区表', prereq:'QSIPrep 预处理后的扩散像；包含可用于张量拟合的 b=0 与扩散加权体积。', rule:'在设定的最大 b 值内进行加权最小二乘张量拟合；单张量模型不用于解释交叉纤维。', files:'FA、MD、AD、RD 体素图及可选的脑区均值表。' }]
+        },
+        t1: {
+          title:'T1 加权结构像', subtitle:'神经影像 · T1 加权结构像', lead:'选择脑区形态或体素形态学结果，系统分别匹配 FreeSurfer 与 deepmriprep 处理来源。',
+          demo:{ cohort:'认知障碍随访队列（演示）', subjects:128, visits:196, inputs:188, results:163 },
+          source:'FreeSurfer / deepmriprep', output:'脑区形态表、VBM 图或脑区汇总表',
+          flow:[['数据接入','DICOM 检查、BIDS 转换与 T1w 质控','intake',3,3],['结构像处理','按方案运行 FreeSurfer 和/或 deepmriprep','preprocess',8,6],['结果提取','读取脑区形态并发布 VBM 组织图','features',7,5],['结果登记','保存数值、文件、质控与完整来源','provenance',7,6]],
+          selected:['morphometry','vbm'],
+          results:[
+            { id:'morphometry', title:'脑区形态', short:'脑区形态', tag:'FreeSurfer', summary:'获得皮层厚度、表面积及皮层或皮层下体积。', output:'FreeSurfer 分区表', prereq:'fMRIPrep 需启用 FreeSurfer 重建，或使用提供相应结果的 DeepPrep。', rule:'皮层结果使用 FreeSurfer 自身分区；体积图谱不能替代皮层厚度与表面积测量。', files:'皮层平均厚度、表面积、灰质体积与皮层下结构体积。' },
+            { id:'vbm', title:'体素形态学（VBM）', short:'VBM', tag:'deepmriprep', summary:'发布调制组织图及全脑组织体积，可按兼容的平台图谱汇总。', output:'组织图 / 总体积 / 脑区表', prereq:'deepmriprep 0.3.0 已完成 VBM 处理。', rule:'读取 mwp1、mwp2、s6mwp1、s8mwp1，并发布 GMV、WMV、CSFV、TIV；平台不重跑上游处理。', files:'调制灰质/白质图、全脑组织体积及兼容图谱下的区域汇总。' }
+          ]
+        },
+        eeg: {
+          title:'静息态 EEG', subtitle:'神经电生理 · 静息态 EEG', lead:'保留与量表、影像一致的 Agent 入口和医生端结果选择方式；当前后端尚未接入 EEG 处理。',
+          demo:{ cohort:'认知障碍随访队列（演示）', subjects:128, visits:196, inputs:61, results:'—' },
+          source:'后端接口待接入', output:'规划中的频谱、连接与微状态结果', atlas:false, waiting:true, selected:[],
+          flow:[['数据接入','EEG-BIDS 转换与通道信息检查','intake'],['EEG 预处理','重参考、滤波与伪迹处理','preprocess'],['结果提取','频谱、连接或微状态分析','features'],['结果登记','质控记录与特征表（规划）','provenance']],
+          results:[
+            { id:'power', title:'频谱功率', short:'频谱功率', tag:'规划项', waiting:true, summary:'规划输出 δ、θ、α、β 等频段的绝对与相对功率。', output:'接口待接入', prereq:'需确定 EEG 预处理工具、通道体系、参考方式及频段定义。', rule:'尚未形成平台统计契约。', files:'尚未接入。' },
+            { id:'eegfc', title:'EEG 功能连接', short:'EEG 功能连接', tag:'规划项', waiting:true, summary:'规划输出传感器或源空间的频段连接指标。', output:'接口待接入', prereq:'需批准连接指标、体积传导控制方法及结果空间。', rule:'尚未形成平台统计契约。', files:'尚未接入。' },
+            { id:'microstate', title:'EEG 微状态分析', short:'微状态分析', tag:'规划项', waiting:true, summary:'规划输出微状态类别、持续时间、覆盖率和转换特征。', output:'接口待接入', prereq:'需确定微状态算法、类别数与质控标准。', rule:'尚未形成平台统计契约。', files:'尚未接入。' }
+          ]
+        }
+      };
+
+      const defaultSettings = {
+        fmri: { pipeline:'fmriprep', outputSpace:'MNI152NLin2009cAsym', resolution:'2', longitudinal:'unbiased', fsReconall:false, surfaceSpace:'fsaverage6', dummyScans:'0', preset:'simple', filter:'none', useMotion:true, useHighPass:true, useWmCsf:true, useGlobal:false, useCompcor:false, useScrub:false, alffBand:'0.01-0.08', normalization:'m', smoothing:'6', rehoNeighbourhood:'27' },
+        dwi: { resolution:'2.0', synSdc:'warn', longitudinal:'unbiased', maxBValue:'1500' },
+        t1: { device:'gpu' },
+        eeg: { reference:'average', filter:'1-45', artifact:'ica' }
+      };
+      const atlasRecord = (name, family, space, labels, review='结构检查通过', enabled=true) => ({ name, family, space, labels, review, enabled });
+      const atlasCatalog = [
+        atlasRecord('AAL_MNI152NLin2009cAsym_2mm','AAL','MNI152NLin2009cAsym',76),
+        atlasRecord('AAL_MNI152NLin6Asym_2mm','AAL','MNI152NLin6Asym',76),
+        atlasRecord('AAL_Subcortical_MNI152NLin2009cAsym_2mm','AAL Subcortical','MNI152NLin2009cAsym',40),
+        atlasRecord('AAL_Subcortical_MNI152NLin6Asym_2mm','AAL Subcortical','MNI152NLin6Asym',40),
+        atlasRecord('AccumbensHarvard2_MNI152NLin6Asym_2mm','AccumbensHarvard','MNI152NLin6Asym',2),
+        atlasRecord('AmygdalaKlein14_MNI152NLin6Asym_2mm','AmygdalaKlein','MNI152NLin6Asym',14),
+        atlasRecord('BN_MNI152NLin2009cAsym_2mm','BN','MNI152NLin2009cAsym',210),
+        atlasRecord('BN_MNI152NLin6Asym_2mm','BN','MNI152NLin6Asym',210),
+        atlasRecord('BN_Subcortical_MNI152NLin2009cAsym_2mm','BN Subcortical','MNI152NLin2009cAsym',36),
+        atlasRecord('BN_Subcortical_MNI152NLin6Asym_2mm','BN Subcortical','MNI152NLin6Asym',36),
+        atlasRecord('BNSTDaria2_MNI152NLin6Asym_2mm','BNST Daria','MNI152NLin6Asym',2),
+        atlasRecord('Brainnetome274_MNI152NLin6Asym_2mm','Brainnetome','MNI152NLin6Asym',274,'需复核'),
+        atlasRecord('BrainnetomeCerebellum28_MNI152NLin6Asym_2mm','Brainnetome Cerebellum','MNI152NLin6Asym',28,'需复核'),
+        atlasRecord('Broadmann_MNI152NLin2009cAsym_2mm','Broadmann','MNI152NLin2009cAsym',82),
+        atlasRecord('Broadmann_MNI152NLin6Asym_2mm','Broadmann','MNI152NLin6Asym',82),
+        atlasRecord('Buckner_MNI152NLin2009cAsym_2mm','Buckner','MNI152NLin2009cAsym',17,'需复核'),
+        atlasRecord('Buckner_MNI152NLin6Asym_2mm','Buckner','MNI152NLin6Asym',17,'需复核'),
+        atlasRecord('DK_MNI152NLin2009cAsym_2mm','DK','MNI152NLin2009cAsym',68),
+        atlasRecord('DK_MNI152NLin6Asym_2mm','DK','MNI152NLin6Asym',68),
+        atlasRecord('ELife47177Olfactory4_MNI152NLin6Asym_2mm','ELife47177Olfactory','MNI152NLin6Asym',4),
+        atlasRecord('Zhang_fine-grained_cortical_MNI152NLin2009cAsym_2mm','Zhang fine-grained','MNI152NLin2009cAsym',7340,'需复核'),
+        atlasRecord('Zhang_fine-grained_subcortical_MNI152NLin2009cAsym_2mm','Zhang fine-grained','MNI152NLin2009cAsym',1614,'需复核'),
+        atlasRecord('Zhang_fine-grained_cortical_MNI152NLin6Asym_2mm','Zhang fine-grained','MNI152NLin6Asym',7340,'需复核'),
+        atlasRecord('Zhang_fine-grained_subcortical_MNI152NLin6Asym_2mm','Zhang fine-grained','MNI152NLin6Asym',1614,'需复核'),
+        atlasRecord('Glasser_MNI152NLin2009cAsym_2mm','Glasser','MNI152NLin2009cAsym',352),
+        atlasRecord('Glasser_MNI152NLin6Asym_2mm','Glasser','MNI152NLin6Asym',352),
+        atlasRecord('HarvardOxford_MNI152NLin2009cAsym_2mm','HarvardOxford','MNI152NLin2009cAsym',96),
+        atlasRecord('HarvardOxford_MNI152NLin6Asym_2mm','HarvardOxford','MNI152NLin6Asym',96),
+        atlasRecord('HarvardOxford_Subcortical_MNI152NLin2009cAsym_2mm','HarvardOxford Subcortical','MNI152NLin2009cAsym',15),
+        atlasRecord('HarvardOxford_Subcortical_MNI152NLin6Asym_2mm','HarvardOxford Subcortical','MNI152NLin6Asym',15),
+        atlasRecord('HCPexSeptumNB4_MNI152NLin6Asym_2mm','HCPexSeptumNB','MNI152NLin6Asym',4),
+        atlasRecord('HippocampusTian10_MNI152NLin6Asym_2mm','HippocampusTian','MNI152NLin6Asym',10),
+        atlasRecord('HypothalamusDaria7_MNI152NLin6Asym_2mm','HypothalamusDaria','MNI152NLin6Asym',7,'需复核'),
+        atlasRecord('LCBetts1_MNI152NLin6Asym_2mm','LCBetts','MNI152NLin6Asym',1),
+        atlasRecord('LPB2_MNI152NLin6Asym_2mm','LPB','MNI152NLin6Asym',2,'需复核'),
+        atlasRecord('MICCAI_MNI152NLin2009cAsym_2mm','MICCAI','MNI152NLin2009cAsym',98),
+        atlasRecord('MICCAI_MNI152NLin6Asym_2mm','MICCAI','MNI152NLin6Asym',98),
+        atlasRecord('atl-NettekovenSym32_space-MNI_dseg','Nettekoven','未声明',32,'需复核',false),
+        atlasRecord('Pauli2017Det16_MNI152NLin6Asym_2mm','Pauli2017','MNI152NLin6Asym',16),
+        atlasRecord('RapheAAN2_MNI152NLin6Asym_2mm','RapheAAN','MNI152NLin6Asym',2,'需复核'),
+        atlasRecord('Schaefer1000_MNI152NLin6Asym_1mm','Schaefer','MNI152NLin6Asym',1000),
+        atlasRecord('Schaefer200_MNI152NLin2009cAsym_2mm','Schaefer','MNI152NLin2009cAsym',200),
+        atlasRecord('Schaefer200_MNI152NLin6Asym_2mm','Schaefer','MNI152NLin6Asym',200),
+        atlasRecord('Schaefer400_MNI152NLin2009cAsym_2mm','Schaefer','MNI152NLin2009cAsym',400),
+        atlasRecord('Schaefer400_MNI152NLin6Asym_2mm','Schaefer','MNI152NLin6Asym',400),
+        atlasRecord('Schaefer800_MNI152NLin6Asym_1mm','Schaefer','MNI152NLin6Asym',800),
+        atlasRecord('SubstantiaNigraATAG2_MNI152NLin6Asym_2mm','SubstantiaNigraATAG','MNI152NLin6Asym',2),
+        atlasRecord('THOMAS_Habenula_MNI152NLin2009bAsym_0p5mm','THOMAS','MNI152NLin2009bAsym',2),
+        atlasRecord('THOMAS_Habenula_MNI152NLin6Asym_2mm','THOMAS','MNI152NLin6Asym',2,'需复核'),
+        atlasRecord('Tianye_MNI152NLin2009cAsym_2mm','Tianye','MNI152NLin2009cAsym',54),
+        atlasRecord('Tianye_MNI152NLin6Asym_2mm','Tianye','MNI152NLin6Asym',54),
+        atlasRecord('bn_atlas_2mm_symmetry','TransBrainBN','未声明',127,'需复核',false),
+        atlasRecord('VTAAAN1_MNI152NLin6Asym_2mm','VTAAAN','MNI152NLin6Asym',1),
+        atlasRecord('Yeo17_MNI152NLin2009cAsym_2mm','Yeo','MNI152NLin2009cAsym',17),
+        atlasRecord('Yeo17_MNI152NLin6Asym_2mm','Yeo','MNI152NLin6Asym',17),
+        atlasRecord('Yeo7_MNI152NLin2009cAsym_2mm','Yeo','MNI152NLin2009cAsym',7),
+        atlasRecord('Yeo7_MNI152NLin6Asym_2mm','Yeo','MNI152NLin6Asym',7)
+      ];
+      const saved = window.openai && window.openai.widgetState && window.openai.widgetState.privateContent;
+      const state = { page: saved && saved.page ? saved.page : 'workspace', selected: {}, units:{}, builtins:{}, atlasDraft:[], atlasSpace:'', atlasQuery:'', atlasKey:'', mapTab: 'scales', settingsTab:'', settingsKey:'', settingsBackup:null, settings:{} };
+      Object.keys(defaultSettings).forEach(key => state.settings[key] = { ...defaultSettings[key], ...(saved && saved.settings && saved.settings[key] || {}) });
+      if (state.settings.fmri.preset === 'friston24') state.settings.fmri.preset = 'motion24';
+      if (state.settings.fmri.preset === 'params36') state.settings.fmri.preset = '36p';
+      if (state.settings.fmri.pipeline === 'deepprep') state.settings.fmri.longitudinal = 'session';
+      if (state.settings.dwi.synSdc === 'on') state.settings.dwi.synSdc = 'warn';
+      const catalogItem = name => atlasCatalog.find(atlas => atlas.name === name);
+      const defaultUnitAtlases = {
+        'fmri:alff': [],
+        'fmri:reho': [],
+        'fmri:fc': [catalogItem(state.settings.fmri.outputSpace === 'MNI152NLin6Asym' ? 'BN_MNI152NLin6Asym_2mm' : 'BN_MNI152NLin2009cAsym_2mm')],
+        'dwi:dti': [],
+        't1:vbm': []
+      };
+      const savedUnits = saved && saved.units || {};
+      Object.keys(defaultUnitAtlases).forEach(target => {
+        const source = Array.isArray(savedUnits[target]) ? savedUnits[target] : defaultUnitAtlases[target];
+        state.units[target] = source.map(item => catalogItem(item && item.name)).filter(Boolean).map(item => ({ ...item }));
+      });
+      const defaultBuiltins = { 'fmri:alff':['voxel'], 'fmri:reho':['voxel'], 'fmri:fc':[], 'dwi:dti':['voxel'], 't1:vbm':['voxel'] };
+      const savedBuiltins = saved && saved.builtins || {};
+      Object.keys(defaultBuiltins).forEach(target => { state.builtins[target] = new Set(Array.isArray(savedBuiltins[target]) ? savedBuiltins[target] : defaultBuiltins[target]); });
+      Object.entries(imaging).forEach(([key, config]) => state.selected[key] = new Set(saved && saved.selected && saved.selected[key] || config.selected));
+      const esc = value => String(value).replace(/[&<>'"]/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
+
+      function icons() { if (globalThis.lucide) globalThis.lucide.createIcons({ attrs: { width: 16, height: 16 } }); }
+      function persist() {
+        if (!window.openai || !window.openai.setWidgetState) return;
+        const selected = {}; Object.keys(state.selected).forEach(key => selected[key] = Array.from(state.selected[key]));
+        const builtins = {}; Object.keys(state.builtins).forEach(target => builtins[target] = Array.from(state.builtins[target]));
+        window.openai.setWidgetState({ modelContent:{ page:state.page, selected: selected[state.page] || [] }, privateContent:{ page:state.page, selected, units:state.units, builtins, settings:state.settings } }).catch(() => {});
+      }
+      function showToast(message) { toast.querySelector('span').textContent = message; toast.hidden = false; clearTimeout(showToast.timer); showToast.timer = setTimeout(() => toast.hidden = true, 2600); }
+      function applyFmriPreset(preset) {
+        const s = state.settings.fmri;
+        if (preset === 'custom') return;
+        Object.assign(s, { useMotion:true, useHighPass:true, useWmCsf:true, useGlobal:false, useCompcor:false, useScrub:false });
+        if (preset === 'scrubbing') s.useScrub = true;
+        if (preset === 'compcor') { s.useCompcor = true; s.useWmCsf = false; }
+        if (preset === 'motion24') s.useWmCsf = false;
+        if (preset === '36p') s.useGlobal = true;
+      }
+      function closeNav() { sidebar.classList.remove('is-open'); scrim.classList.remove('is-open'); }
+      function activeNav() {
+        root.querySelectorAll('[data-page]').forEach(button => button.classList.toggle('is-active', button.dataset.page === state.page));
+        root.querySelectorAll('.icw-nav-button[data-page]').forEach(button => { const chev = button.querySelector('.icw-chevron'); if (chev) chev.hidden = button.dataset.page !== state.page; });
+        const imagingOpen = ['fmri','dwi','t1'].includes(state.page);
+        const ephysOpen = state.page === 'eeg';
+        [['imaging',imagingOpen],['ephys',ephysOpen]].forEach(([name,open]) => {
+          const parent = root.querySelector(`[data-parent="${name}"]`); const sub = root.querySelector(`[data-subnav="${name}"]`);
+          parent.setAttribute('aria-expanded', String(open)); parent.classList.toggle('is-active', open); sub.hidden = !open;
+          parent.querySelector('.icw-chevron').setAttribute('data-lucide', open ? 'chevron-down' : 'chevron-right');
+        });
+      }
+
+      function workspaceHtml() {
+        return `<section class="icw-chat" aria-label="Agent 工作台展示">
+          <div class="icw-chat-tools">
+            <button type="button" class="icw-chat-tool" data-go="fmri"><i data-lucide="brain" aria-hidden="true"></i>影像记录</button>
+            <button type="button" class="icw-chat-tool" data-toast="新建对话在正式系统中保留现有行为。"><i data-lucide="message-square-text" aria-hidden="true"></i>新建对话</button>
+            <button type="button" class="icw-chat-tool" data-toast="历史对话入口保持在原位置。"><i data-lucide="history" aria-hidden="true"></i>历史对话</button>
+            <button type="button" class="icw-chat-tool" data-toast="工作区文件入口保持在原位置。"><i data-lucide="file-down" aria-hidden="true"></i>工作区文件</button>
+          </div>
+          <div class="icw-thread">
+            <div class="icw-user-message"><div class="icw-message-file"><i data-lucide="file-spreadsheet" aria-hidden="true"></i>量表随访_演示.xlsx</div>请检查这个演示工作簿，并按照平台字段导入。</div>
+            <div class="icw-assistant"><span class="icw-agent-avatar"><i data-lucide="bot" aria-hidden="true"></i></span><div class="icw-agent-copy">
+              <p>已完成文件结构检查。请先确认普通字段与量表题目、逐题分数和总分的对应关系；确认后 Agent 再统一进行数值清理与导入校验。</p>
+              <div class="icw-import-card">
+                <ol class="icw-import-flow" aria-label="导入进度">
+                  <li class="is-done"><span class="icw-step-mark"><i data-lucide="check" aria-hidden="true"></i></span><span>上传与脱敏</span></li>
+                  <li class="is-current"><span class="icw-step-mark">2</span><span>确认全部表头</span></li>
+                  <li><span class="icw-step-mark">3</span><span>Agent 清洗</span></li>
+                  <li><span class="icw-step-mark">4</span><span>数据工作区</span></li>
+                </ol>
+                <div class="icw-import-head"><div class="icw-file-title"><i data-lucide="file-spreadsheet" aria-hidden="true"></i><span><b>量表随访_演示.xlsx</b><small>等待人工配置 · 展示样例</small></span></div><span class="icw-status"><i></i>待核对</span></div>
+                <div class="icw-import-metrics"><div><b>2</b><span>演示工作表</span></div><div><b>42</b><span>演示来源列</span></div><div><b>0</b><span>结构阻断问题</span></div><div><b>3</b><span>待核对列</span></div></div>
+                <div class="icw-import-notice"><i data-lucide="refresh-cw" aria-hidden="true"></i><span><b>先确认字段映射</b>核对所有保留表头，可使用 Agent 辅助预填。确认后统一清洗，再进入表格与对话工作区。</span></div>
+                <div class="icw-mapping-entry"><div><b>确认字段映射</b><span>一般字段与量表字段在同一个审核入口中处理；量表区分题目文字、逐题分数和总分。</span></div><button type="button" class="icw-secondary-button" id="icw-open-mapping"><i data-lucide="file-spreadsheet" aria-hidden="true"></i>配置字段映射</button></div>
+              </div>
+            </div></div>
+          </div>
+          <div class="icw-composer"><textarea aria-label="发送消息" placeholder="询问数据，或分别附加表格 / DICOM 影像…"></textarea><div class="icw-attach-wrap"><button type="button" class="icw-composer-action" id="icw-attach" aria-label="添加附件" aria-expanded="false"><i data-lucide="paperclip" aria-hidden="true"></i></button><div class="icw-attachment-menu" id="icw-attachment-menu" hidden><button type="button" data-toast="正式系统沿用现有 XLSX / CSV 上传与映射流程。"><i data-lucide="file-spreadsheet" aria-hidden="true"></i>选择表格（XLSX / CSV）</button><button type="button" data-go="fmri"><i data-lucide="brain" aria-hidden="true"></i>选择影像（DICOM ZIP）</button><button type="button" disabled><i data-lucide="audio-waveform" aria-hidden="true"></i>选择 EEG 文件<small>待接入</small></button></div></div><button type="button" class="icw-composer-action icw-send" data-toast="这是界面样板，不会发送或写入数据。" aria-label="发送"><i data-lucide="send" aria-hidden="true"></i></button></div>
+        </section>`;
+      }
+
+      const stagesByType = {
+        fmri:[['intake','数据接入'],['preprocess','fMRI 预处理'],['postprocess','fMRI 后处理'],['features','结果提取']],
+        dwi:[['intake','数据接入'],['preprocess','DWI 预处理'],['tensor','扩散模型拟合'],['features','结果提取']],
+        t1:[['intake','数据接入'],['preprocess','结构像处理'],['features','结果提取'],['provenance','结果登记']],
+        eeg:[['intake','数据接入'],['preprocess','EEG 预处理'],['features','结果提取'],['provenance','结果登记']]
+      };
+
+      function settingsSummary(key) {
+        const s = state.settings[key];
+        if (key === 'fmri') {
+          const pipeline = s.pipeline === 'fmriprep' ? 'fMRIPrep' : 'DeepPrep';
+          const preset = ({ simple:'基础去噪', scrubbing:'高头动帧剔除', compcor:'CompCor', motion24:'Friston-24', '36p':'36 参数', custom:'自定义' })[s.preset];
+          const filter = ({ none:'不滤波', '0.01-0.1':'0.01–0.1 Hz', '0.01-0.08':'0.01–0.08 Hz' })[s.filter];
+          return `${pipeline} · ${preset} · ${filter}`;
+        }
+        if (key === 'dwi') return `QSIPrep · ${s.resolution} mm · ${{ off:'不启用 SyN', warn:'SyN 畸变校正（按数据判断）' }[s.synSdc]}`;
+        if (key === 't1') return 'FreeSurfer 脑区形态 · deepmriprep VBM';
+        return '规划参数 · 后端接口待接入';
+      }
+      function atlasSummary(target) {
+        const items = state.units[target] || [];
+        if (!items.length) return target === 'fmri:fc' ? '需选择图谱' : '仅保留体素结果';
+        return items.length === 1 ? items[0].name : `${items[0].name} 等 ${items.length} 个图谱`;
+      }
+      function atlasSpaceSummary(target) {
+        const spaces = [...new Set((state.units[target] || []).map(item => item.space))];
+        return spaces.length ? spaces.join(' · ') : '尚未追加脑区汇总';
+      }
+      function atlasEligibility(atlas, target) {
+        if (!atlas.enabled) return { ok:false, reason:'平台已停用' };
+        if (target === 't1:vbm') return atlas.space === 'MNI152NLin2009cAsym' ? { ok:true } : { ok:false, reason:'与 VBM 标准空间不兼容' };
+        if (target.startsWith('fmri:')) return atlas.space === state.settings.fmri.outputSpace ? { ok:true } : { ok:false, reason:`与当前 fMRI 空间 ${state.settings.fmri.outputSpace} 不一致` };
+        if (target === 'dwi:dti') return ['MNI152NLin6Asym','MNI152NLin2009cAsym'].includes(atlas.space) ? { ok:true } : { ok:false, reason:'当前 DTI 流程未登记该模板变换' };
+        return { ok:false, reason:'当前指标不使用平台体积图谱' };
+      }
+      function builtinOptions(target) {
+        const deepprep = state.settings.fmri.pipeline === 'deepprep';
+        const options = {
+          'fmri:alff': [
+            ['voxel','体素图',true,''],
+            ['vertex:surface','DeepPrep 表面顶点',deepprep,'仅 DeepPrep 功能像结果提供'],
+            ['atlas:fs-aparc','FreeSurfer aparc',deepprep,'仅 DeepPrep 功能像结果提供'],
+            ['atlas:fs-aparc-a2009s','FreeSurfer aparc.a2009s',deepprep,'仅 DeepPrep 功能像结果提供']
+          ],
+          'fmri:reho': [['voxel','体素图',true,'']],
+          'fmri:fc': [
+            ['atlas:fs-aparc','FreeSurfer aparc',deepprep,'仅 DeepPrep 功能像结果提供'],
+            ['atlas:fs-aparc-a2009s','FreeSurfer aparc.a2009s',deepprep,'仅 DeepPrep 功能像结果提供']
+          ],
+          'dwi:dti': [['voxel','体素图',true,'']],
+          't1:vbm': [['voxel','VBM 体素结果',true,'']]
+        };
+        return options[target] || [];
+      }
+      function builtinLabel(target, value) {
+        const found = builtinOptions(target).find(item => item[0] === value);
+        return found ? found[1] : value;
+      }
+      function resultSpaceHtml(key, item) {
+        if (item.id === 'morphometry') return `<div class="icw-result-space"><div class="icw-result-space-copy"><b>输出分区</b><small>脑区形态直接使用 FreeSurfer 自身分区，不进入平台体积图谱库。</small></div><div class="icw-result-space-value">Desikan-Killiany (aparc)<br>Destrieux (aparc.a2009s)<br>aseg</div></div>`;
+        const target = `${key}:${item.id}`;
+        const note = item.id === 'fc' ? '功能连接不生成体素图，必须选择 FreeSurfer 分区或至少一个平台图谱；每个单位独立生成矩阵。' : item.id === 'vbm' ? 'VBM 可发布体素结果；脑区汇总只使用 MNI152NLin2009cAsym 平台图谱。' : item.id === 'dti' ? 'DTI 可保留体素图；脑区汇总时将图谱变换到个体 ACPC / 扩散空间。' : item.id === 'reho' ? 'ReHo 支持体素图与平台图谱；每个单位是一条独立配置。' : 'ALFF / fALFF 支持体素、DeepPrep 表面、FreeSurfer 分区与平台图谱；每个单位独立配置。';
+        const builtin = builtinOptions(target).map(([value,label,available,reason]) => `<button type="button" data-builtin-unit="${esc(target)}" data-unit-value="${esc(value)}" class="${state.builtins[target].has(value) ? 'is-active' : ''}" ${available ? '' : 'disabled'} aria-pressed="${state.builtins[target].has(value)}" ${reason ? `data-tooltip="${esc(reason)}"` : ''}>${esc(label)}</button>`).join('');
+        return `<div class="icw-result-space"><div class="icw-result-space-copy"><b>输出单位</b><small>${esc(note)}</small><div class="icw-unit-options">${builtin}</div></div><button type="button" class="icw-atlas-picker" data-open-atlas="${esc(target)}"><span><b>${esc(state.units[target].length ? atlasSummary(target) : '添加平台图谱')}</b><small>${esc(atlasSpaceSummary(target))} · 平台图谱库</small></span><i data-lucide="chevrons-up-down" aria-hidden="true"></i></button></div>`;
+      }
+      function selectionSource(key, chosen) {
+        if (key === 'fmri') return state.settings.fmri.pipeline === 'deepprep' ? 'DeepPrep 25.1.0' : 'fMRIPrep 25.2.3';
+        if (key !== 't1') return imaging[key].source;
+        const sources = [];
+        if (chosen.some(item => item.id === 'morphometry')) sources.push('FreeSurfer');
+        if (chosen.some(item => item.id === 'vbm')) sources.push('deepmriprep 0.3.0');
+        return sources.length ? sources.join('、') : '按所选结果匹配';
+      }
+      function resultPlanSummary(key, item) {
+        if (item.id === 'morphometry') return 'FreeSurfer 分区';
+        const target = `${key}:${item.id}`;
+        const selected = Array.from(state.builtins[target]).map(value => builtinLabel(target, value));
+        if (state.units[target].length) selected.push(`${state.units[target].length} 个平台图谱`);
+        return selected.length ? selected.join(' + ') : '尚未选择空间单位';
+      }
+
+      function settingRow(title, note, control) {
+        return `<div class="icw-setting-row"><div class="icw-setting-copy"><b>${esc(title)}</b><small>${esc(note)}</small></div><div class="icw-setting-control">${control}</div></div>`;
+      }
+      function settingSelect(name, value, options, disabled=false) {
+        return `<select data-setting="${esc(name)}" ${disabled ? 'disabled' : ''}>${options.map(([v,label]) => `<option value="${esc(v)}" ${String(value) === String(v) ? 'selected' : ''}>${esc(label)}</option>`).join('')}</select>`;
+      }
+      function settingSegments(name, value, options, disabled=false) {
+        return `<div class="icw-segmented">${options.map(([v,label]) => `<button type="button" data-setting-choice="${esc(name)}" data-value="${esc(v)}" class="${String(value) === String(v) ? 'is-active' : ''}" ${disabled ? 'disabled' : ''}>${esc(label)}</button>`).join('')}</div>`;
+      }
+      function settingSwitch(name, checked, disabled=false) {
+        return `<div class="icw-switch-row"><button type="button" class="icw-switch" data-setting-switch="${esc(name)}" role="switch" aria-checked="${checked}" ${disabled ? 'disabled' : ''}></button><span>${disabled ? '待接入' : (checked ? '开启' : '关闭')}</span></div>`;
+      }
+      function infoRow(title, note, value) {
+        return settingRow(title, note, `<b style="font-size:10px;font-weight:500;text-align:right">${esc(value)}</b>`);
+      }
+
+      function settingsContextHtml(key, stageId) {
+        const c = imaging[key];
+        const stage = c.flow.find(item => item[2] === stageId);
+        const workload = c.waiting ? '后端接口待接入' : `${stage[4]} 位患者 · ${stage[3]} 次检查`;
+        return `<div><span>数据范围</span><b>${esc(c.demo.cohort)}</b></div><div><span>当前阶段</span><b>${esc(stage[0])}</b></div><div><span>处于本阶段</span><b>${esc(workload)}</b></div><div><span>样板状态</span><b>${c.waiting ? '接口待接入' : '仅演示，不运行任务'}</b></div>`;
+      }
+
+      function settingsBodyHtml(key, tab) {
+        const s = state.settings[key];
+        if (tab === 'intake') {
+          if (key === 'fmri') return `<div class="icw-setting-intro"><i data-lucide="folder-input" aria-hidden="true"></i><span>这一阶段只负责把原始检查可靠地整理为可追踪的 BIDS 数据，不执行 fMRI 预处理或特征计算。</span></div><div class="icw-setting-group"><h3>接入与检查</h3>${infoRow('输入数据','读取影像序列及必要采集信息。','DICOM')}${infoRow('BIDS 数据','建立患者、随访与静息态 BOLD / T1w 的明确关联。','sub-<id> / ses-<visit>')}${infoRow('采集质控','核对序列完整性、扫描参数、方向与配套结构像。','通过后进入预处理')}${infoRow('原始文件','原始上传保持不可变，转换与修正保留记录。','可审计')}</div>`;
+          if (key === 'dwi') return `<div class="icw-setting-intro"><i data-lucide="folder-input" aria-hidden="true"></i><span>扩散像在进入预处理前先完成 BIDS 转换，并核对梯度和相位编码信息。</span></div><div class="icw-setting-group"><h3>接入与检查</h3>${infoRow('输入数据','扩散序列及配套结构像。','DICOM')}${infoRow('扩散信息','核对 b 值、梯度方向及 bvec / bval 数量一致性。','必须通过')}${infoRow('畸变校正条件','识别反向相位编码数据或场图是否存在。','按实际采集登记')}${infoRow('数据身份','关联患者与随访，不依赖文件名猜测身份。','sub-<id> / ses-<visit>')}</div>`;
+          if (key === 't1') return `<div class="icw-setting-intro"><i data-lucide="folder-input" aria-hidden="true"></i><span>T1w 在这一阶段完成身份核对、DICOM 转 BIDS 和基础图像质控，尚未运行 FreeSurfer 或 deepmriprep。</span></div><div class="icw-setting-group"><h3>接入与检查</h3>${infoRow('输入数据','识别可用的三维 T1 加权结构像。','DICOM')}${infoRow('BIDS 数据','患者和每次随访形成独立且可追踪的会话。','sub-<id> / ses-<visit>')}${infoRow('基础质控','检查序列完整性、方向、分辨率与明显伪影。','通过后进入结构像处理')}${infoRow('原始文件','原始上传保持不可变，转换结果单独登记。','可审计')}</div>`;
+          return `<div class="icw-setting-intro is-warning"><i data-lucide="folder-input" aria-hidden="true"></i><span>EEG 数据接入仍处于规划状态；样板只描述未来应具备的边界，不代表接口已经可用。</span></div><div class="icw-setting-group"><h3>规划中的接入检查</h3>${infoRow('输入记录','静息态 EEG 原始记录与设备元数据。','EDF / 配套信息')}${infoRow('BIDS 数据','转换为 EEG-BIDS，并关联患者和随访。','接口待接入')}${infoRow('通道信息','核对通道名称、类型、采样率和参考信息。','规则待批准')}${infoRow('原始文件','原始上传保持不可变，转换过程保留审计记录。','规划要求')}</div>`;
+        }
+        if (key === 'fmri' && tab === 'preprocess') {
+          const isFmriprep = s.pipeline === 'fmriprep';
+          return `<div class="icw-setting-intro"><i data-lucide="info" aria-hidden="true"></i><span>预处理负责校正、配准和标准化；时间滤波不在这里设置，而在“fMRI 后处理”中设置。</span></div>
+            <div class="icw-setting-group"><h3>处理引擎</h3>
+            ${settingRow('预处理管线','按项目已安装并验证的版本选择。',settingSegments('pipeline',s.pipeline,[['fmriprep','fMRIPrep 25.2.3'],['deepprep','DeepPrep 25.1.0']]))}
+            ${settingRow('标准空间','决定标准空间体素结果的参照模板。',settingSelect('outputSpace',s.outputSpace,[['MNI152NLin2009cAsym','MNI152NLin2009cAsym'],['MNI152NLin6Asym','MNI152NLin6Asym']]))}
+            ${isFmriprep ? settingRow('输出分辨率','标准空间 BOLD 输出的各向同性体素尺寸。',settingSegments('resolution',s.resolution,[['2','2 mm'],['1','1 mm']])) : settingRow('表面空间','DeepPrep 的表面结果空间。',settingSelect('surfaceSpace',s.surfaceSpace,[['fsaverage6','fsaverage6'],['fsaverage5','fsaverage5'],['fsaverage','fsaverage']]))}
+            ${s.pipeline === 'deepprep' ? settingRow('多次随访处理','DeepPrep 不建立被试内纵向模板；每次随访独立处理。',settingSegments('longitudinal','session',[['session','逐随访（固定）']])) : settingRow('多次随访处理','fMRIPrep 可用同一被试多次 T1 构建无偏模板，也可各次独立。',settingSegments('longitudinal',s.longitudinal,[['unbiased','纵向（无偏模板）'],['session','逐随访']]))}
+            ${isFmriprep ? settingRow('FreeSurfer 表面重建','开启后可输出皮层表面及脑区形态结果。',settingSwitch('fsReconall',s.fsReconall)) : settingRow('起始帧','跳过扫描开始时信号尚未稳定的体积。',settingSelect('dummyScans',s.dummyScans,[['0','不跳过'],['3','跳过 3 帧'],['5','跳过 5 帧'],['10','跳过 10 帧']]))}</div>
+            <div class="icw-setting-group"><h3>运行资源</h3>${infoRow('计算资源','医生端默认折叠；系统管理员按部署环境配置。',isFmriprep ? '8 CPU · 24 GB 内存' : '8 CPU · 24 GB 内存 · 可选 GPU')}</div>`;
+        }
+        if (key === 'fmri' && tab === 'postprocess') {
+          const warning = s.filter !== 'none' && state.selected.fmri.has('alff');
+          return `<div class="icw-setting-intro"><i data-lucide="sliders-horizontal" aria-hidden="true"></i><span>先选择常用方案，再按研究需要展开调整。医生只需在主页面确认方案摘要。</span></div>
+            ${warning ? '<div class="icw-setting-intro is-warning"><i data-lucide="triangle-alert" aria-hidden="true"></i><span>ALFF/fALFF 只能读取不滤波的后处理管线。当前滤波方案仍可供 ReHo 或功能连接使用。</span></div>' : ''}
+            <div class="icw-setting-group"><h3>去噪方案</h3>
+            ${settingRow('方案预设','预设只负责填充下方组件，所有选择仍会被记录。',settingSelect('preset',s.preset,[['simple','基础去噪（nilearn）'],['scrubbing','高头动帧剔除（nilearn）'],['compcor','CompCor（nilearn）'],['motion24','Friston-24'],['36p','36 参数'],['custom','自定义']]))}
+            ${settingRow('时间滤波','滤波属于后处理。ALFF/fALFF 必须读取“不滤波”管线。',settingSegments('filter',s.filter,[['none','不滤波'],['0.01-0.1','0.01–0.1 Hz'],['0.01-0.08','0.01–0.08 Hz']]))}</div>
+            <div class="icw-setting-group"><h3>信号回归与质控</h3>
+            ${settingRow('头动参数','回归头动及其展开项。',settingSwitch('useMotion',s.useMotion))}
+            ${settingRow('高通余弦项','去除缓慢漂移，与带通滤波不是同一设置。',settingSwitch('useHighPass',s.useHighPass))}
+            ${settingRow('白质与脑脊液信号','回归 WM / CSF 平均信号。',settingSwitch('useWmCsf',s.useWmCsf))}
+            ${settingRow('全脑信号','是否执行全局信号回归，需在研究方案中明确。',settingSwitch('useGlobal',s.useGlobal))}
+            ${settingRow('CompCor','使用解剖或时间 CompCor 成分。',settingSwitch('useCompcor',s.useCompcor))}
+            ${settingRow('高头动帧剔除','按 FD / DVARS 阈值标记并剔除高头动帧。',settingSwitch('useScrub',s.useScrub))}</div>`;
+        }
+        if (key === 'fmri' && tab === 'features') {
+          return `<div class="icw-setting-intro"><i data-lucide="list-checks" aria-hidden="true"></i><span>这里只有结果计算参数；所选结果仍由主页面控制，修改参数不会自动增减结果项。</span></div><div class="icw-setting-group"><h3>ALFF / fALFF</h3>
+            ${settingRow('频率范围','用于频谱取值，不代表在计算前做带通滤波。',settingSelect('alffBand',s.alffBand,[['0.01-0.08','0.01–0.08 Hz'],['0.01-0.1','0.01–0.1 Hz'],['0.027-0.073','0.027–0.073 Hz（slow-4）']]))}
+            ${settingRow('数值输出','可保留原始值，或进行全脑均值 / z 标准化。',settingSegments('normalization',s.normalization,[['raw','原始值'],['m','均值标准化'],['z','z 标准分数']]))}</div>
+            <div class="icw-setting-group"><h3>ReHo 与功能连接</h3>
+            ${settingRow('ReHo 邻域','Kendall 和谐系数计算使用的相邻体素数。',settingSegments('rehoNeighbourhood',s.rehoNeighbourhood,[['27','27 体素'],['19','19 体素'],['7','7 体素']]))}
+            ${settingRow('结果图平滑','ReHo 在未平滑时间序列上计算，平滑作用于派生结果图。',settingSegments('smoothing',s.smoothing,[['0','无'],['4','4 mm'],['6','6 mm']]))}
+            ${infoRow('功能连接方法','当前首版固定方法，避免医生端出现无验证选项。','Pearson 相关 · Fisher z')}</div>`;
+        }
+        if (key === 'fmri') return `<div class="icw-setting-intro"><i data-lucide="shield-check" aria-hidden="true"></i><span>每次运行都保存管线版本、配置快照、输入输出和质控记录，便于复现与审计。</span></div><div class="icw-setting-group"><h3>版本与输出</h3>${infoRow('预处理来源','正式系统以实际任务记录为准。',s.pipeline === 'fmriprep' ? 'fMRIPrep 25.2.3' : 'DeepPrep 25.1.0')}${infoRow('后处理实现','去噪、过滤和掩膜操作。','nilearn')}${infoRow('标准空间', '图谱汇总前必须核对空间与分辨率。',s.outputSpace)}${infoRow('结果记录','包含配置、日志、质控和衍生文件索引。','生成不可变配置版本')}</div>`;
+
+        if (key === 'dwi' && tab === 'preprocess') return `<div class="icw-setting-intro"><i data-lucide="info" aria-hidden="true"></i><span>QSIPrep 负责扩散像校正、配准与标准化，处理策略由采集数据中是否存在反向相位编码或场图决定。</span></div><div class="icw-setting-group"><h3>QSIPrep 预处理</h3>${infoRow('处理引擎','版本随任务一并记录。','QSIPrep 1.0.1.dev0')}${settingRow('输出分辨率','ACPC 空间输出的各向同性体素尺寸。',settingSegments('resolution',s.resolution,[['2.0','2.0 mm'],['1.5','1.5 mm'],['1.25','1.25 mm']]))}${settingRow('无场图畸变校正','本项目没有场图；按数据判断时尝试 SyN，失败则记录警告；也可关闭。',settingSegments('synSdc',s.synSdc,[['warn','按数据判断'],['off','关闭']]))}${settingRow('多次随访处理','扩散像按随访处理，纵向解剖参考由上游结构像方案决定。',settingSegments('longitudinal',s.longitudinal,[['unbiased','纵向参考'],['session','逐随访']]))}</div>`;
+        if (key === 'dwi' && tab === 'tensor') return `<div class="icw-setting-intro"><i data-lucide="activity" aria-hidden="true"></i><span>DTI 为单张量模型，只纳入设定 b 值以内的体积，不用于解释交叉纤维。</span></div><div class="icw-setting-group"><h3>张量计算</h3>${settingRow('最大 b 值','高于此阈值的扩散体积不参与 DTI 张量拟合。',settingSelect('maxBValue',s.maxBValue,[['1000','1000 s/mm²'],['1500','1500 s/mm²'],['2000','2000 s/mm²']]))}${infoRow('拟合方法','生成 FA、MD、AD 和 RD。','加权最小二乘')}${infoRow('脑区汇总空间','平台图谱变换到个体空间后提取。','个体 ACPC / 扩散空间')}</div>`;
+        if (key === 'dwi') return `<div class="icw-setting-intro"><i data-lucide="shield-check" aria-hidden="true"></i><span>输出会记录梯度检查、畸变校正来源、空间变换与张量参数。</span></div><div class="icw-setting-group"><h3>版本与输出</h3>${infoRow('处理来源','正式系统以容器摘要和任务记录为准。','QSIPrep 1.0.1.dev0')}${infoRow('主要体素图','扩散张量定量结果。','FA · MD · AD · RD')}${infoRow('区域结果','DTI 指标单独选择图谱。',atlasSummary('dwi:dti'))}</div>`;
+
+        if (key === 't1' && tab === 'preprocess') return `<div class="icw-setting-intro"><i data-lucide="git-branch" aria-hidden="true"></i><span>T1 不是单一管线：系统根据所选结果运行 FreeSurfer 和/或 deepmriprep，并分别保存任务和版本。</span></div><div class="icw-setting-group"><h3>处理分支</h3>${infoRow('脑区形态','皮层重建、分区及皮层下结构测量。','FreeSurfer')}${infoRow('体素形态学（VBM）','组织分割、空间标准化与调制组织图。','deepmriprep 0.3.0')}${settingRow('运行设备','仅影响运行资源，不改变输出语义。',settingSegments('device',s.device,[['gpu','GPU'],['cpu','CPU']]))}</div>`;
+        if (key === 't1' && tab === 'features') return `<div class="icw-setting-intro"><i data-lucide="layers-3" aria-hidden="true"></i><span>结果提取读取已完成的结构像处理产物；脑区形态与 VBM 各自遵循独立的结果契约。</span></div><div class="icw-setting-group"><h3>脑区形态与 VBM</h3>${infoRow('脑区形态','直接读取 FreeSurfer 自身分区测量。','aparc · aparc.a2009s · aseg')}${infoRow('VBM 调制组织图','用于体素结果查看或后续脑区汇总。','mwp1 · mwp2 · s6mwp1 · s8mwp1')}${infoRow('VBM 全脑组织体积','随任务结果发布并保留来源。','GMV · WMV · CSFV · TIV')}${infoRow('VBM 脑区汇总','只使用空间兼容且已启用的平台图谱。',atlasSummary('t1:vbm'))}</div>`;
+        if (key === 't1') return `<div class="icw-setting-intro"><i data-lucide="shield-check" aria-hidden="true"></i><span>结果登记把数值、文件、质控状态和处理来源绑定到具体患者与随访，形成可复现的结果记录。</span></div><div class="icw-setting-group"><h3>登记内容</h3>${infoRow('结果索引','脑区形态表、VBM 组织图和全脑组织体积分别登记。','按患者 / 随访关联')}${infoRow('处理来源','保存管线版本、配置快照、输入与任务标识。','完整溯源')}${infoRow('VBM 标准空间','区域汇总只登记空间兼容的平台图谱。','MNI152NLin2009cAsym')}${infoRow('质控状态','异常结果保留原因，不自动替换或覆盖。','可审核')}</div><div class="icw-setting-intro is-warning"><i data-lucide="calendar-range" aria-hidden="true"></i><span>deepmriprep VBM 按每次随访独立处理，不等同于 CAT12 纵向被试内模型；跨随访比较属于后续统计解释。</span></div>`;
+
+        if (key === 'eeg' && tab === 'preprocess') return `<div class="icw-setting-intro is-warning"><i data-lucide="circle-alert" aria-hidden="true"></i><span>以下仅用于讨论未来接口，所有控件均不可操作，不代表后端已经具备 EEG 预处理能力。</span></div><div class="icw-setting-group"><h3>规划中的预处理</h3>${settingRow('参考方式','需先批准通道体系与坏导处理规则。',settingSelect('reference',s.reference,[['average','全脑平均参考'],['linked','双侧乳突参考']],true))}${settingRow('频率范围','滤波边界与陷波频率需结合设备和采样率批准。',settingSelect('filter',s.filter,[['1-45','1–45 Hz'],['0.5-45','0.5–45 Hz']],true))}${settingRow('伪迹处理','算法、人工复核和质控标准尚未形成接口契约。',settingSelect('artifact',s.artifact,[['ica','ICA 辅助识别'],['asr','ASR']],true))}</div>`;
+        if (key === 'eeg' && tab === 'features') return `<div class="icw-setting-intro is-warning"><i data-lucide="list-checks" aria-hidden="true"></i><span>EEG 特征尚未形成后端计算契约；以下类别只用于确认未来医生端的信息结构。</span></div><div class="icw-setting-group"><h3>规划中的结果</h3>${infoRow('频谱功率','绝对功率、相对功率与频段定义需统一版本。','接口待接入')}${infoRow('功能连接','需批准连接指标、体积传导控制和结果空间。','接口待接入')}${infoRow('微状态','需批准算法、类别数及人工质控标准。','接口待接入')}</div>`;
+        return `<div class="icw-setting-intro is-warning"><i data-lucide="plug-zap" aria-hidden="true"></i><span>EEG-BIDS 转换、预处理、后处理和特征服务仍需单独批准接口与验收标准。</span></div><div class="icw-setting-group"><h3>当前边界</h3>${infoRow('文件接入','页面仅保留未来入口。','未接入')}${infoRow('预处理任务','尚无后端任务类型。','未接入')}${infoRow('特征结果','频谱、连接和微状态均为规划项。','未接入')}</div>`;
+      }
+
+      function renderSettingsModal(key, requestedTab) {
+        const stages = stagesByType[key];
+        const tab = stages.some(item => item[0] === requestedTab) ? requestedTab : stages[0][0];
+        state.settingsKey = key; state.settingsTab = tab;
+        const lifecycle = {
+          intake:'数据接入只建立合格、可追踪的标准数据，不执行预处理或结果计算。',
+          preprocess:'预处理策略单独版本化；参数变化可能重新处理适用数据，已有结果保留。',
+          postprocess:'后处理保存为可复用方案；只有被特征配置引用时才按需计算。',
+          features:'结果提取读取合格的上游产物；参数变化不会无条件重跑预处理。',
+          tensor:'张量拟合参数属于 DTI 特征配置，不会重跑 QSIPrep。',
+          provenance:'结果登记保存数值、文件、质控、版本与完整来源，供复现和审计。'
+        };
+        const stageLabel = stages.find(item => item[0] === tab)[1];
+        root.querySelector('#icw-settings-title').textContent = stageLabel;
+        root.querySelector('#icw-settings-subtitle').textContent = `${imaging[key].title} · 阶段详情`;
+        root.querySelector('#icw-settings-context').innerHTML = settingsContextHtml(key, tab);
+        root.querySelector('#icw-settings-body').innerHTML = settingsBodyHtml(key, tab);
+        root.querySelector('#icw-settings-foot-note').textContent = `${lifecycle[tab] || '各阶段分别记录输入、输出与配置。'} 当前操作只更新样板展示。`;
+        icons();
+      }
+
+      function renderAtlasModal() {
+        const target = state.atlasKey;
+        const [key, resultId] = target.split(':');
+        const result = imaging[key].results.find(item => item.id === resultId);
+        const allowedSpaces = target === 't1:vbm' ? ['MNI152NLin2009cAsym'] : ['', 'MNI152NLin6Asym', 'MNI152NLin2009cAsym', 'MNI152NLin2009bAsym', '未声明'];
+        if (!allowedSpaces.includes(state.atlasSpace)) state.atlasSpace = allowedSpaces[0];
+        const text = state.atlasQuery.trim().toLowerCase();
+        const rows = atlasCatalog.filter(atlas => (!state.atlasSpace || atlas.space === state.atlasSpace) && (!text || `${atlas.name} ${atlas.family}`.toLowerCase().includes(text)));
+        root.querySelector('#icw-atlas-title').textContent = `为 ${result.title} 选择平台图谱`;
+        root.querySelector('#icw-atlas-title').nextElementSibling.textContent = target === 't1:vbm' ? '仅显示平台登记为 MNI152NLin2009cAsym 的兼容图谱' : '目录名称、空间、标签数和审核状态来自当前平台图谱库';
+        root.querySelector('#icw-atlas-spaces').innerHTML = allowedSpaces.map(space => `<button type="button" data-atlas-space="${esc(space)}" class="${space === state.atlasSpace ? 'is-active' : ''}">${space || '全部空间'}</button>`).join('');
+        root.querySelector('#icw-atlas-list').innerHTML = rows.length ? rows.map(atlas => {
+          const eligibility = atlasEligibility(atlas, target);
+          const selected = state.atlasDraft.some(item => item.name === atlas.name);
+          const status = `${atlas.review} · 配准未验证 · 许可待核对${eligibility.ok ? '' : ` · ${eligibility.reason}`}`;
+          return `<button type="button" class="icw-atlas-option ${selected ? 'is-selected' : ''}" data-atlas-index="${atlasCatalog.indexOf(atlas)}" ${eligibility.ok ? '' : 'disabled'}><span><b>${esc(atlas.name)}</b><small>${esc(atlas.family)} · ${esc(status)}</small></span><span class="icw-atlas-space">${esc(atlas.space)}</span><span class="icw-atlas-count">${atlas.labels.toLocaleString('zh-CN')} 个标签</span></button>`;
+        }).join('') : '<div class="icw-atlas-empty">没有匹配的图谱，请更换名称或模板空间。</div>';
+        const available = rows.filter(atlas => atlasEligibility(atlas, target).ok).length;
+        root.querySelector('#icw-atlas-total').textContent = `显示 ${rows.length} / 平台 ${atlasCatalog.length} 个 · 当前可选 ${available} 个`;
+        icons();
+      }
+
+      function imagingHtml(key) {
+        const config = imaging[key]; const chosen = config.results.filter(item => state.selected[key].has(item.id));
+        const blocked = chosen.some(item => item.id !== 'morphometry' && !state.units[`${key}:${item.id}`].length && !state.builtins[`${key}:${item.id}`].size);
+        const resultRows = config.results.map(item => `<article class="icw-result" data-result="${esc(item.id)}"><div class="icw-result-main">
+          <button type="button" class="icw-result-check" data-result-check="${esc(item.id)}" aria-label="选择${esc(item.title)}" aria-pressed="${state.selected[key].has(item.id)}" ${item.waiting ? 'disabled' : ''}><i data-lucide="check" aria-hidden="true"></i></button>
+          <div class="icw-result-copy"><b>${esc(item.title)}<span class="icw-feature-tag ${item.blue ? 'is-blue' : ''} ${item.waiting ? 'is-waiting' : ''}">${esc(item.tag)}</span></b><p>${esc(item.summary)}</p></div>
+          <div class="icw-result-output">结果形式<b>${esc(item.output)}</b></div>
+          <button type="button" class="icw-expand-button" data-result-expand="${esc(item.id)}" aria-label="查看${esc(item.title)}的处理依据" aria-expanded="false"><i data-lucide="chevron-down" aria-hidden="true"></i></button>
+        </div><div class="icw-result-detail" hidden><dl><dt>先决条件</dt><dd>${esc(item.prereq)}</dd><dt>处理原则</dt><dd>${esc(item.rule)}</dd><dt>结果内容</dt><dd>${esc(item.files)}</dd></dl>${item.waiting ? '' : resultSpaceHtml(key, item)}</div></article>`).join('');
+        const flow = config.flow.map((step,index) => {
+          const workload = config.waiting ? '后端接口待接入' : `${step[4]} 位患者 · ${step[3]} 次检查`;
+          return `<button type="button" class="icw-flow-step" data-open-settings="${key}" data-settings-stage="${esc(step[2])}" aria-label="查看${esc(step[0])}阶段详情，${esc(workload)}"><span class="icw-flow-top"><span class="icw-flow-number">${index + 1}</span><b>${esc(step[0])}</b></span><small>${esc(step[1])}</small><span class="icw-flow-queue ${config.waiting ? 'is-waiting' : ''}">${config.waiting ? '' : '当前：'}${esc(workload)}</span><span class="icw-flow-action">查看阶段详情 <i data-lucide="chevron-right" aria-hidden="true"></i></span></button>`;
+        }).join('');
+        return `<section class="icw-module" data-module="${key}">
+          <div class="icw-module-head"><div><h2>${esc(config.title)}</h2><p>${esc(config.lead)}</p></div><button type="button" class="icw-source-button" data-toast="当前处理来源：${esc(config.source)}。"><i data-lucide="database" aria-hidden="true"></i>查看数据来源</button></div>
+          <div class="icw-demo-data" aria-label="演示队列数据"><div class="icw-cohort"><b>${esc(config.demo.cohort)}</b><span>样板数据，不连接真实数据库</span></div><div><b>${esc(config.demo.subjects)}</b><span>演示患者</span></div><div><b>${esc(config.demo.visits)}</b><span>演示随访</span></div><div><b>${esc(config.demo.inputs)}</b><span>具备可用输入</span></div><div><b>${esc(config.demo.results)}</b><span>已登记结果</span></div></div>
+          <div class="icw-flow" aria-label="可查看详情的分析流程">${flow}</div>
+          <div class="icw-module-grid"><div><div class="icw-section-title"><div><h3>选择分析结果</h3><p>默认只显示医生关心的结果，处理依据按需展开。</p></div><span class="icw-selected-count">${config.waiting ? '后端接口待接入' : `已选择 ${chosen.length} 项`}</span></div><div class="icw-results">${resultRows}</div>
+          </div><aside class="icw-plan"><div class="icw-plan-head"><h3>本次方案</h3><p>根据所选结果自动形成，提交前确认数据范围。</p></div><ul class="icw-plan-list"><li><span>数据类型</span><b>${esc(config.title)}</b></li><li><span>处理来源</span><b>${esc(selectionSource(key, chosen))}</b></li><li><span>所选结果</span><b>${chosen.length ? chosen.map(item => esc(item.short)).join('、') : (config.waiting ? '尚未开放选择' : '尚未选择')}</b></li><li><span>结果配置</span><b>${chosen.length ? chosen.map(item => `${esc(item.short)}：${esc(resultPlanSummary(key, item))}`).join('<br>') : '—'}</b></li><li><span>运行原则</span><b>${key === 't1' ? '按结果匹配处理来源' : '复用合格的上游结果'}</b></li></ul><div class="icw-plan-note ${config.waiting || blocked ? 'is-waiting' : ''}"><i data-lucide="${config.waiting || blocked ? 'circle-alert' : 'shield-check'}" aria-hidden="true"></i>${config.waiting ? '这是流程和术语样板，不代表 EEG 后端能力已经接入。' : blocked ? '至少有一个已选指标尚未选择可用的空间单位。' : '运行前检查先决条件；不满足时说明原因，不自动替换研究方案。'}</div><button type="button" class="icw-primary-button" ${config.waiting || !chosen.length || blocked ? 'disabled' : ''} data-toast="${config.waiting ? 'EEG 后端接口尚未接入。' : '正式版本将在此进入数据范围确认。'}"><i data-lucide="clipboard-check" aria-hidden="true"></i>${config.waiting ? 'EEG 接口待接入' : '确认方案与数据范围'}</button></aside></div>
+        </section>`;
+      }
+
+      function retainedHtml(page) {
+        const data = {
+          dashboard:['数据总览','患者、随访、量表和专业数据的统一概览。','chart-no-axes-combined','展示样板不加载数据库统计','正式页面继续使用现有完整度、量表趋势与最近导入结构。'],
+          patients:['患者随访','按患者查看人口学信息、随访记录、量表与专业检查。','users','展示样板不加载患者记录','正式页面继续使用现有患者列表、搜索与随访详情结构。'],
+          catalog:['字段字典','维护人口学、临床、量表和专业结果字段。','book-open','展示样板不加载字段记录','正式页面继续使用现有字段分类、搜索与字段详情结构。'],
+          history:['导入历史','查看表格与专业数据附件的处理记录。','history','展示样板不加载导入记录','正式页面继续使用现有导入列表与返回 Agent 对话的入口。']
+        }[page];
+        return `<section class="icw-retained"><div class="icw-intro"><div><h2>${data[0]}</h2><p>${data[1]}</p></div><span class="icw-demo-label">原功能保留</span></div><div class="icw-retained-grid"><div class="icw-panel"><div class="icw-panel-head"><div><h3>${page === 'patients' ? '患者列表' : page === 'catalog' ? '字段列表' : page === 'history' ? '全部导入记录' : '数据概况'}</h3><p>页面结构与现有系统保持一致</p></div><button type="button" class="icw-secondary-button"><i data-lucide="search" aria-hidden="true"></i>搜索</button></div>${page !== 'dashboard' ? '<div class="icw-table-head"><span>名称</span><span>分类 / 时间</span><span>状态</span><span>操作</span></div>' : ''}<div class="icw-empty-state"><i data-lucide="${data[2]}" aria-hidden="true"></i><b>${data[3]}</b><span>${data[4]}</span></div></div><div class="icw-panel"><div class="icw-panel-head"><div><h3>${page === 'dashboard' ? '最近导入' : '详情'}</h3><p>选择记录后显示</p></div></div><div class="icw-empty-state"><i data-lucide="panel-right" aria-hidden="true"></i><b>尚未选择记录</b><span>样板不伪造患者、随访或任务状态。</span></div></div></div></section>`;
+      }
+
+      function render() {
+        activeNav();
+        const titles = { workspace:['Agent 工作台','临床数据管理与分析'], dashboard:['数据总览','临床数据管理与分析'], patients:['患者随访','临床数据管理与分析'], catalog:['字段字典','临床数据管理与分析'], history:['导入历史','临床数据管理与分析'] };
+        if (imaging[state.page]) { pageTitle.textContent = imaging[state.page].title; pageSubtitle.textContent = imaging[state.page].subtitle; content.innerHTML = imagingHtml(state.page); }
+        else { pageTitle.textContent = titles[state.page][0]; pageSubtitle.textContent = titles[state.page][1]; content.innerHTML = state.page === 'workspace' ? workspaceHtml() : retainedHtml(state.page); }
+        icons();
+      }
+
+      function mapTable(tab) {
+        const head = root.querySelector('#icw-map-head'); const body = root.querySelector('#icw-map-body'); const progress = root.querySelector('#icw-map-progress');
+        if (tab === 'scales') {
+          head.innerHTML = '<tr><th>来源列</th><th>角色</th><th>量表与评估者</th><th>题目对应</th><th>目标字段</th></tr>';
+          body.innerHTML = `<tr><td><b>HAMD_01</b><small>抑郁心境</small></td><td><select><option>逐题分数</option></select></td><td><b>HAMD-17</b><small>临床医生评定</small></td><td><b>第 1 题</b><small>抑郁心境</small></td><td><select><option>HAMD-17 · 第 1 题</option></select></td></tr><tr class="needs-review"><td><b>HAMD_total</b><small>HAMD 总分</small></td><td><select><option>总分</option></select></td><td><b>HAMD-17</b><small>临床医生评定</small></td><td><b>总分</b><small>Agent 建议 · 待确认</small></td><td><select><option>选择已有总分字段</option></select></td></tr><tr><td><b>MoCA_Q1</b><small>视空间执行</small></td><td><select><option>逐题分数</option></select></td><td><b>MoCA</b><small>临床医生评定</small></td><td><b>视空间与执行</b><small>已匹配</small></td><td><select><option>MoCA · 视空间与执行</option></select></td></tr><tr class="needs-review"><td><b>MoCA_total</b><small>MoCA 总分</small></td><td><select><option>总分</option></select></td><td><b>MoCA</b><small>临床医生评定</small></td><td><b>总分</b><small>Agent 建议 · 待确认</small></td><td><select><option>选择已有总分字段</option></select></td></tr>`;
+          progress.textContent = '3 列待核对';
+        } else {
+          head.innerHTML = '<tr><th>来源列</th><th>来源示例</th><th>目标字段</th><th>状态</th><th>说明</th></tr>';
+          body.innerHTML = `<tr><td><b>subject_id</b><small>A001</small></td><td>队列内唯一编号</td><td><select><option>患者与随访关联 · 队列编号</option></select></td><td>已匹配</td><td>身份关联</td></tr><tr><td><b>visit_number</b><small>1</small></td><td>随访次数</td><td><select><option>患者与随访关联 · 随访次数</option></select></td><td>已匹配</td><td>身份关联</td></tr><tr class="needs-review"><td><b>education_years</b><small>12</small></td><td>受教育年限</td><td><select><option>选择数据库字段</option></select></td><td>待选择</td><td>请核对单位</td></tr>`;
+          progress.textContent = '1 列待核对';
+        }
+      }
+
+      root.addEventListener('click', event => {
+        const pageButton = event.target.closest('[data-page], [data-go]');
+        if (pageButton) { state.page = pageButton.dataset.page || pageButton.dataset.go; render(); closeNav(); persist(); return; }
+        const parent = event.target.closest('[data-parent]');
+        if (parent) {
+          const name = parent.dataset.parent; const open = parent.getAttribute('aria-expanded') !== 'true';
+          root.querySelector(`[data-subnav="${name}"]`).hidden = !open; parent.setAttribute('aria-expanded', String(open)); parent.querySelector('.icw-chevron').setAttribute('data-lucide', open ? 'chevron-down' : 'chevron-right'); icons(); return;
+        }
+        const check = event.target.closest('[data-result-check]');
+        if (check && !check.disabled) { const set = state.selected[state.page]; const id = check.dataset.resultCheck; set.has(id) ? set.delete(id) : set.add(id); render(); persist(); return; }
+        const expand = event.target.closest('[data-result-expand]');
+        if (expand) { const row = expand.closest('.icw-result'); const detail = row.querySelector('.icw-result-detail'); const open = row.classList.toggle('is-open'); detail.hidden = !open; expand.setAttribute('aria-expanded', String(open)); return; }
+        const builtinUnit = event.target.closest('[data-builtin-unit]');
+        if (builtinUnit && !builtinUnit.disabled) {
+          const target = builtinUnit.dataset.builtinUnit; const value = builtinUnit.dataset.unitValue; const selectedUnits = state.builtins[target];
+          selectedUnits.has(value) ? selectedUnits.delete(value) : selectedUnits.add(value);
+          render(); persist(); return;
+        }
+        const openAtlas = event.target.closest('[data-open-atlas]');
+        if (openAtlas) { state.atlasKey = openAtlas.dataset.openAtlas; state.atlasDraft = state.units[state.atlasKey].map(item => ({ ...item })); state.atlasQuery = ''; state.atlasSpace = state.atlasKey === 't1:vbm' ? 'MNI152NLin2009cAsym' : state.atlasKey.startsWith('fmri:') ? state.settings.fmri.outputSpace : ''; root.querySelector('#icw-atlas-search').value = ''; renderAtlasModal(); atlasModal.hidden = false; return; }
+        if (event.target.closest('[data-close-atlas]')) { atlasModal.hidden = true; return; }
+        const atlasSpace = event.target.closest('[data-atlas-space]');
+        if (atlasSpace) { state.atlasSpace = atlasSpace.dataset.atlasSpace; renderAtlasModal(); return; }
+        const atlasOption = event.target.closest('[data-atlas-index]');
+        if (atlasOption) { const atlas = atlasCatalog[Number(atlasOption.dataset.atlasIndex)]; const found = state.atlasDraft.findIndex(item => item.name === atlas.name); if (found >= 0) state.atlasDraft.splice(found, 1); else state.atlasDraft.push({ ...atlas }); renderAtlasModal(); return; }
+        if (event.target.closest('#icw-apply-atlas')) {
+          if (state.atlasKey === 'fmri:fc' && !state.atlasDraft.length) { showToast('功能连接必须至少选择一个图谱。'); return; }
+          state.units[state.atlasKey] = state.atlasDraft.map(item => ({ ...item }));
+          const [key, resultId] = state.atlasKey.split(':'); const result = imaging[key].results.find(item => item.id === resultId);
+          atlasModal.hidden = true; render(); persist(); showToast(`已为${result.short}应用 ${state.atlasDraft.length} 个图谱。`); return;
+        }
+        const openSettings = event.target.closest('[data-open-settings]');
+        if (openSettings) { const key = openSettings.dataset.openSettings; state.settingsBackup = { ...state.settings[key] }; renderSettingsModal(key, openSettings.dataset.settingsStage || ''); settingsModal.hidden = false; return; }
+        const closeSettings = event.target.closest('[data-close-settings]');
+        if (closeSettings) { if (state.settingsKey && state.settingsBackup) state.settings[state.settingsKey] = { ...state.settingsBackup }; state.settingsBackup = null; settingsModal.hidden = true; return; }
+        const settingChoice = event.target.closest('[data-setting-choice]');
+        if (settingChoice && !settingChoice.disabled) {
+          const name = settingChoice.dataset.settingChoice; state.settings[state.settingsKey][name] = settingChoice.dataset.value;
+          if (state.settingsKey === 'fmri' && name === 'pipeline' && settingChoice.dataset.value === 'deepprep') state.settings.fmri.longitudinal = 'session';
+          if (state.settingsKey === 'fmri' && name === 'preset') applyFmriPreset(settingChoice.dataset.value);
+          renderSettingsModal(state.settingsKey, state.settingsTab); return;
+        }
+        const settingSwitch = event.target.closest('[data-setting-switch]');
+        if (settingSwitch && !settingSwitch.disabled) {
+          const name = settingSwitch.dataset.settingSwitch; state.settings[state.settingsKey][name] = !state.settings[state.settingsKey][name];
+          if (state.settingsKey === 'fmri' && ['useMotion','useHighPass','useWmCsf','useGlobal','useCompcor','useScrub'].includes(name)) state.settings.fmri.preset = 'custom';
+          renderSettingsModal(state.settingsKey, state.settingsTab); return;
+        }
+        if (event.target.closest('#icw-reset-settings')) { state.settings[state.settingsKey] = { ...defaultSettings[state.settingsKey] }; renderSettingsModal(state.settingsKey, state.settingsTab); showToast('已恢复当前模态的项目默认方案。'); return; }
+        if (event.target.closest('#icw-apply-settings')) {
+          if (state.settingsKey === 'fmri') ['fmri:alff','fmri:reho','fmri:fc'].forEach(target => {
+            state.units[target] = state.units[target].filter(atlas => atlasEligibility(atlas, target).ok);
+            const allowed = new Set(builtinOptions(target).filter(item => item[2]).map(item => item[0]));
+            state.builtins[target] = new Set(Array.from(state.builtins[target]).filter(value => allowed.has(value)));
+          });
+          state.settingsBackup = null; settingsModal.hidden = true; render(); persist(); showToast('样板方案摘要已更新；未提交任务或写入后端。'); return;
+        }
+        if (event.target.closest('#icw-open-mapping')) { modal.hidden = false; state.mapTab = 'scales'; mapTable('scales'); icons(); return; }
+        const close = event.target.closest('[data-close-modal]'); if (close) { modal.hidden = true; return; }
+        const mapTab = event.target.closest('[data-map-tab]');
+        if (mapTab) { state.mapTab = mapTab.dataset.mapTab; root.querySelectorAll('[data-map-tab]').forEach(button => { const active = button === mapTab; button.classList.toggle('is-active', active); button.setAttribute('aria-selected', String(active)); }); mapTable(state.mapTab); return; }
+        if (event.target.closest('#icw-confirm-map')) { modal.hidden = true; showToast('样板仅展示审核结构，不会写入或修改数据。'); return; }
+        const attach = event.target.closest('#icw-attach'); if (attach) { const menu = root.querySelector('#icw-attachment-menu'); menu.hidden = !menu.hidden; attach.setAttribute('aria-expanded', String(!menu.hidden)); return; }
+        const toastButton = event.target.closest('[data-toast]'); if (toastButton && !toastButton.disabled) showToast(toastButton.dataset.toast);
+      });
+      root.querySelector('#icw-atlas-search').addEventListener('input', event => { state.atlasQuery = event.target.value; renderAtlasModal(); root.querySelector('#icw-atlas-search').focus(); });
+      settingsModal.addEventListener('change', event => {
+        const control = event.target.closest('[data-setting]'); if (!control || control.disabled) return;
+        const name = control.dataset.setting; state.settings[state.settingsKey][name] = control.value;
+        if (state.settingsKey === 'fmri' && name === 'preset') applyFmriPreset(control.value);
+        renderSettingsModal(state.settingsKey, state.settingsTab);
+      });
+      root.querySelector('.icw-menu-button').addEventListener('click', () => { sidebar.classList.add('is-open'); scrim.classList.add('is-open'); });
+      root.querySelector('.icw-close-button').addEventListener('click', closeNav); scrim.addEventListener('click', closeNav);
+      window.addEventListener('openai:set_globals', event => { const next = event.detail && event.detail.globals && event.detail.globals.widgetState && event.detail.globals.widgetState.privateContent; if (!next) return; if (next.page) state.page = next.page; if (next.units) Object.keys(state.units).forEach(target => { if (Array.isArray(next.units[target])) state.units[target] = next.units[target].map(item => catalogItem(item && item.name)).filter(Boolean).map(item => ({ ...item })); }); if (next.builtins) Object.keys(state.builtins).forEach(target => { if (Array.isArray(next.builtins[target])) state.builtins[target] = new Set(next.builtins[target]); }); if (next.selected) Object.keys(imaging).forEach(key => { if (Array.isArray(next.selected[key])) state.selected[key] = new Set(next.selected[key]); }); if (next.settings) Object.keys(defaultSettings).forEach(key => state.settings[key] = { ...defaultSettings[key], ...(next.settings[key] || {}) }); render(); });
+      render();
+    })();
+  </script>
+</div>
+
+</body>
+</html>
