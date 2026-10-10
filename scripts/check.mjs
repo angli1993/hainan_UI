@@ -16,8 +16,16 @@ const required = [
   'DWI / DTI',
   'T1 加权结构像',
   '静息态 EEG',
-  '数据接入',
-  '结果提取'
+  '平台图谱库',
+  'BIDS 数据',
+  '静息态 fMRI 去噪',
+  'fMRI 特征提取',
+  '功能梯度',
+  '计算起点',
+  'DTI 特征提取',
+  'FreeSurfer 结构像处理',
+  'deepmriprep VBM 处理',
+  'EEG 特征提取'
 ];
 
 for (const label of required) {
@@ -26,6 +34,18 @@ for (const label of required) {
 
 if (source.includes('id="icw-settings-tabs"')) {
   failures.push('Stage details must not expose navigation to adjacent stages.');
+}
+if (source.includes("['provenance','结果登记']")) {
+  failures.push('Automatic result registration must not be shown as a processing stage.');
+}
+if (source.includes('<h3>ReHo 与功能连接</h3>')) {
+  failures.push('ReHo and functional connectivity must have separate feature settings.');
+}
+if (source.includes('<span>运行原则</span>') || source.includes("state.units[target].length} 个平台图谱")) {
+  failures.push('The plan must show a concrete calculation start and actual atlas names.');
+}
+if (!source.includes("flowKind:'branched'")) {
+  failures.push('T1 must retain separate FreeSurfer and deepmriprep branches.');
 }
 if (!source.includes('位患者 · ${step[3]} 次检查')) {
   failures.push('Pipeline stages must show both patient and examination counts.');
