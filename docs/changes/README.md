@@ -8,3 +8,4 @@
 | 0004 | 复刻平台图谱查看工作台 | Verified |
 | 0005 | fMRI 特征方案与缓存复用 | Verified |
 | 0006 | 医生端分析准备度与任务衔接 | Verified |
+| 0007 | fMRI 动态准备度与默认图谱 | Verified |

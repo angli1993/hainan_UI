@@ -25,10 +25,14 @@ const required = [
   '查看处理路径',
   '调整参数',
   '推荐方案',
-  '可复用去噪 BOLD',
+  '无需补充处理',
   '队列推荐方案 v1.0',
   '自定义草案',
-  '可直接计算',
+  '海南痴呆队列',
+  '脑网络组图谱（BN 210）',
+  '当前图谱',
+  '本方案需补充',
+  '本次待计算',
   '需补充 BOLD 去噪',
   '暂不可分析',
   '分析前检查',
@@ -61,8 +65,17 @@ if (source.includes("if (key === 'fmri') return '从已完成的静息态 fMRI �
 if (source.includes('34 + 146') || source.includes('时间序列处理')) {
   failures.push('fMRI must separate BOLD denoising from feature calculation and use the approved stage term.');
 }
-if (!source.includes("selected: ['reho']") || !source.includes('reusable = { alff:74, reho:98, fc:112, gradients:61 }')) {
+if (!source.includes("selected: ['reho']") || !source.includes('const fmriReuseCounts = { alff:74, reho:98, fc:112, gradients:61 }')) {
   failures.push('The approved ReHo cache-reuse demonstration is missing.');
+}
+if (!source.includes('compatibleExamIds') || !source.includes('plans.every(({ plan }) => plan.compatibleExamIds.has(examId))')) {
+  failures.push('fMRI multi-feature readiness must aggregate compatible examination sets.');
+}
+if (!source.includes("'fmri:alff': [defaultFmriAtlas()]") || !source.includes("'fmri:reho': [defaultFmriAtlas()]") || !source.includes("'fmri:fc': [defaultFmriAtlas()]") || !source.includes("'fmri:gradients': [defaultFmriAtlas()]")) {
+  failures.push('Every fMRI feature must receive the compatible default Brainnetome atlas.');
+}
+if (source.includes('认知障碍随访队列') || source.includes('Math.min(...plans.map(({plan}) => plan.reusable))')) {
+  failures.push('Stale cohort naming or minimum-count readiness logic remains.');
 }
 if (!source.includes('fmriSharesGradientIntermediate')) {
   failures.push('Functional connectivity and gradients must demonstrate compatible intermediate reuse.');
@@ -70,7 +83,7 @@ if (!source.includes('fmriSharesGradientIntermediate')) {
 if (!source.includes("flowKind:'branched'")) {
   failures.push('T1 must retain separate FreeSurfer and deepmriprep branches.');
 }
-if (!source.includes('位患者 · ${step[3]} 次检查')) {
+if (!source.includes('`${step[4]} 位患者 · ${step[3]} 次检查`') || !source.includes('`${readiness.supplementPatients} 位患者 · ${readiness.supplement} 次检查`')) {
   failures.push('Pipeline stages must show both patient and examination counts.');
 }
 if (!output.includes(source)) {

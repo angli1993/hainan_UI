@@ -242,6 +242,7 @@
     #integrated-clinical-workbench .icw-feature-tag.is-waiting { color: var(--icw-warning); background: var(--icw-warning-soft); }
     #integrated-clinical-workbench .icw-result-output { color: var(--icw-text-3); font-size: 9px; text-align: right; white-space: nowrap; }
     #integrated-clinical-workbench .icw-result-output b { display: block; margin-top: 2px; color: var(--icw-text-2); font-weight: 500; }
+    #integrated-clinical-workbench .icw-result-atlas { display: block; max-width: 155px; margin-top: 4px; overflow-wrap: anywhere; color: var(--icw-text-3); font-size: 8px; line-height: 1.35; white-space: normal; }
     #integrated-clinical-workbench .icw-result-output em { margin-top: 4px; display: inline-block; padding: 2px 5px; border-radius: 4px; color: var(--icw-brand-dark); background: var(--icw-brand-soft); font-size: 8px; font-style: normal; }
     #integrated-clinical-workbench .icw-result-output em.is-custom { color: var(--icw-warning); background: var(--icw-warning-soft); }
     #integrated-clinical-workbench .icw-result-actions { display: flex; align-items: center; gap: 4px; }
@@ -596,6 +597,9 @@
       #integrated-clinical-workbench .icw-flow-step:nth-child(2) { border-right: 0; }
       #integrated-clinical-workbench .icw-flow-step:nth-child(2)::after { display: none; }
       #integrated-clinical-workbench .icw-flow-step:nth-child(n+3) { border-bottom: 0; }
+      #integrated-clinical-workbench .icw-flow-step > small,
+      #integrated-clinical-workbench .icw-flow-queue,
+      #integrated-clinical-workbench .icw-flow-action { margin-left: 0; }
       #integrated-clinical-workbench .icw-t1-branch { grid-template-columns: 1fr; }
       #integrated-clinical-workbench .icw-t1-branch-label { grid-column: 1 / -1; border-right: 0; border-bottom: 1px solid var(--icw-line); }
       #integrated-clinical-workbench .icw-t1-branch .icw-flow-step { border-right: 0; border-bottom: 1px solid var(--icw-line); }
@@ -788,9 +792,9 @@
         fmri: {
           title: '静息态 fMRI', subtitle: '神经影像 · 静息态 fMRI',
           lead: '选择指标后加载推荐处理方案；系统从最深的兼容结果继续计算，不重复执行已完成步骤。',
-          demo: { cohort:'认知障碍随访队列（演示）', subjects:128, visits:196, inputs:172, results:146 },
+          demo: { cohort:'海南痴呆队列', subjects:128, visits:196, inputs:172, results:146 },
           source: 'fMRIPrep / DeepPrep', output: '体素图、脑区表或连接矩阵',
-          flow:[['BIDS 数据','查看转换结果、采集质控与失败原因','bids',172,118],['fMRI 预处理','校正、配准与空间标准化','preprocess',146,104],['BOLD 信号去噪','混杂信号回归、高头动帧处理与时域滤波','denoise',48,38],['fMRI 特征提取','ALFF/fALFF、ReHo、功能连接或功能梯度','features',146,104]],
+          flow:[['BIDS 数据','查看转换结果、采集质控与失败原因','bids',172,118],['fMRI 预处理','校正、配准与空间标准化','preprocess',146,104],['BOLD 信号去噪','混杂信号回归、高头动帧处理与时域滤波','denoise'],['fMRI 特征提取','ALFF/fALFF、ReHo、功能连接或功能梯度','features']],
           selected: ['reho'],
           results: [
             { id:'alff', title:'低频振幅（ALFF）/ 低频振幅分数（fALFF）', short:'ALFF / fALFF', tag:'常用', summary:'反映静息态信号低频振荡的幅度及其相对占比。', output:'体素图 / 脑区表', prereq:'fMRIPrep 或 DeepPrep 预处理 BOLD；完成混杂回归，但不预先进行带通滤波。', rule:'剔除帧先插值后进行频谱计算；频段用于频谱取值，不等同于预先带通滤波。', files:'ALFF、fALFF 图及可选的脑区均值表。' },
@@ -801,7 +805,7 @@
         },
         dwi: {
           title:'DWI / DTI', subtitle:'神经影像 · DWI / DTI', lead:'从扩散像结果中选择需要的定量指标，平台保留真实处理来源与空间变换记录。',
-          demo:{ cohort:'认知障碍随访队列（演示）', subjects:128, visits:196, inputs:84, results:76 },
+          demo:{ cohort:'海南痴呆队列', subjects:128, visits:196, inputs:84, results:76 },
           source:'QSIPrep', output:'FA、MD、AD、RD 体素图或脑区表',
           flow:[['BIDS 数据','查看转换结果、梯度信息与采集质控','bids',84,63],['DWI 预处理','畸变、运动、涡流与偏置场校正','preprocess',3,3],['扩散模型拟合','在设定 b 值范围内拟合 DTI','tensor',2,2],['DTI 特征提取','FA、MD、AD、RD 与脑区汇总','features',1,1]],
           selected:['dti'],
@@ -809,7 +813,7 @@
         },
         t1: {
           title:'T1 加权结构像', subtitle:'神经影像 · T1 加权结构像', lead:'选择脑区形态或体素形态学结果，系统分别匹配 FreeSurfer 与 deepmriprep 处理来源。',
-          demo:{ cohort:'认知障碍随访队列（演示）', subjects:128, visits:196, inputs:188, results:163 },
+          demo:{ cohort:'海南痴呆队列', subjects:128, visits:196, inputs:188, results:163 },
           source:'FreeSurfer / deepmriprep', output:'脑区形态表、VBM 图或脑区汇总表', flowKind:'branched',
           flow:[['BIDS 数据','查看转换结果与 T1w 采集质控','bids',188,124],['FreeSurfer 结构像处理','皮层重建、分区及皮层下结构测量','freesurfer',8,6],['脑区形态特征提取','读取 FreeSurfer 原生分区测量','morphometry',7,5],['deepmriprep VBM 处理','组织分割、标准化与调制','vbmprocess',6,5],['VBM 特征提取','发布组织图、总体积及可选脑区汇总','vbmfeatures',4,4]],
           selected:['morphometry','vbm'],
@@ -820,7 +824,7 @@
         },
         eeg: {
           title:'静息态 EEG', subtitle:'神经电生理 · 静息态 EEG', lead:'保留与量表、影像一致的 Agent 入口和医生端结果选择方式；当前后端尚未接入 EEG 处理。',
-          demo:{ cohort:'认知障碍随访队列（演示）', subjects:128, visits:196, inputs:61, results:'—' },
+          demo:{ cohort:'海南痴呆队列', subjects:128, visits:196, inputs:61, results:'—' },
           source:'后端接口待接入', output:'规划中的频谱、连接与微状态结果', atlas:false, waiting:true, selected:[],
           flow:[['EEG-BIDS 数据','查看转换结果与通道信息检查','bids'],['EEG 预处理','重参考、滤波与伪迹处理','preprocess'],['EEG 特征提取','频谱、连接或微状态分析','features']],
           results:[
@@ -897,7 +901,9 @@
         atlasRecord('Yeo7_MNI152NLin2009cAsym_2mm','Yeo','MNI152NLin2009cAsym',7),
         atlasRecord('Yeo7_MNI152NLin6Asym_2mm','Yeo','MNI152NLin6Asym',7)
       ];
+      const prototypeStateVersion = 2;
       const saved = window.openai && window.openai.widgetState && window.openai.widgetState.privateContent;
+      const migrateFmriAtlasDefaults = !saved || saved.version !== prototypeStateVersion;
       const savedLibrary = saved && saved.library || {};
       const state = { page: saved && saved.page ? saved.page : 'workspace', selected: {}, units:{}, builtins:{}, atlasDraft:[], atlasSpace:'', atlasQuery:'', atlasKey:'', librarySpace:'', libraryQuery:'', librarySelected:savedLibrary.selected || 'Schaefer200_MNI152NLin2009cAsym_2mm', libraryView:savedLibrary.view || 'quad', libraryOpacity:Number.isFinite(savedLibrary.opacity) ? savedLibrary.opacity : .7, libraryLabelQuery:'', libraryLabelPage:0, libraryFocus:null, mapTab: 'scales', settingsTab:'', settingsKey:'', settingsFeature:'', settingsBackup:null, settings:{} };
       Object.keys(defaultSettings).forEach(key => state.settings[key] = { ...defaultSettings[key], ...(saved && saved.settings && saved.settings[key] || {}) });
@@ -909,17 +915,20 @@
       if (state.settings.fmri.pipeline === 'deepprep') state.settings.fmri.longitudinal = 'session';
       if (state.settings.dwi.synSdc === 'on') state.settings.dwi.synSdc = 'warn';
       const catalogItem = name => atlasCatalog.find(atlas => atlas.name === name);
+      const defaultFmriAtlasForSpace = space => catalogItem(space === 'MNI152NLin6Asym' ? 'BN_MNI152NLin6Asym_2mm' : 'BN_MNI152NLin2009cAsym_2mm');
+      const defaultFmriAtlas = () => defaultFmriAtlasForSpace(state.settings.fmri.outputSpace);
       const defaultUnitAtlases = {
-        'fmri:alff': [],
-        'fmri:reho': [],
-        'fmri:fc': [catalogItem(state.settings.fmri.outputSpace === 'MNI152NLin6Asym' ? 'BN_MNI152NLin6Asym_2mm' : 'BN_MNI152NLin2009cAsym_2mm')],
-        'fmri:gradients': [catalogItem(state.settings.fmri.outputSpace === 'MNI152NLin6Asym' ? 'BN_MNI152NLin6Asym_2mm' : 'BN_MNI152NLin2009cAsym_2mm')],
+        'fmri:alff': [defaultFmriAtlas()],
+        'fmri:reho': [defaultFmriAtlas()],
+        'fmri:fc': [defaultFmriAtlas()],
+        'fmri:gradients': [defaultFmriAtlas()],
         'dwi:dti': [],
         't1:vbm': []
       };
       const savedUnits = saved && saved.units || {};
       Object.keys(defaultUnitAtlases).forEach(target => {
-        const source = Array.isArray(savedUnits[target]) ? savedUnits[target] : defaultUnitAtlases[target];
+        const migrateTarget = migrateFmriAtlasDefaults && target.startsWith('fmri:');
+        const source = migrateTarget || !Array.isArray(savedUnits[target]) ? defaultUnitAtlases[target] : savedUnits[target];
         state.units[target] = source.map(item => catalogItem(item && item.name)).filter(Boolean).map(item => ({ ...item }));
       });
       const defaultBuiltins = { 'fmri:alff':['voxel'], 'fmri:reho':['voxel'], 'fmri:fc':[], 'fmri:gradients':[], 'dwi:dti':['voxel'], 't1:vbm':['voxel'] };
@@ -938,6 +947,7 @@
       function atlasReferences(atlas) {
         const references = {
           AAL: [{ citation:'Tzourio-Mazoyer N, et al. Automated anatomical labeling of activations in SPM using a macroscopic anatomical parcellation of the MNI MRI single-subject brain. NeuroImage. 2002;15(1):273-289.', doi:'10.1006/nimg.2001.0978' }],
+          BN: [{ citation:'Fan L, et al. The Human Brainnetome Atlas: A New Brain Atlas Based on Connectional Architecture. Cerebral Cortex. 2016;26(8):3508-3526.', doi:'10.1093/cercor/bhw157' }],
           Brainnetome: [{ citation:'Fan L, et al. The Human Brainnetome Atlas: A New Brain Atlas Based on Connectional Architecture. Cerebral Cortex. 2016;26(8):3508-3526.', doi:'10.1093/cercor/bhw157' }],
           DK: [{ citation:'Desikan RS, et al. An automated labeling system for subdividing the human cerebral cortex on MRI scans into gyral based regions of interest. NeuroImage. 2006;31(3):968-980.', doi:'10.1016/j.neuroimage.2006.01.021' }],
           Glasser: [{ citation:'Glasser MF, et al. A multi-modal parcellation of human cerebral cortex. Nature. 2016;536(7615):171-178.', doi:'10.1038/nature18933' }],
@@ -975,7 +985,7 @@
         if (!window.openai || !window.openai.setWidgetState) return;
         const selected = {}; Object.keys(state.selected).forEach(key => selected[key] = Array.from(state.selected[key]));
         const builtins = {}; Object.keys(state.builtins).forEach(target => builtins[target] = Array.from(state.builtins[target]));
-        window.openai.setWidgetState({ modelContent:{ page:state.page, selected: selected[state.page] || [] }, privateContent:{ page:state.page, selected, units:state.units, builtins, settings:state.settings, library:{ selected:state.librarySelected, view:state.libraryView, opacity:state.libraryOpacity } } }).catch(() => {});
+        window.openai.setWidgetState({ modelContent:{ page:state.page, selected: selected[state.page] || [] }, privateContent:{ version:prototypeStateVersion, page:state.page, selected, units:state.units, builtins, settings:state.settings, library:{ selected:state.librarySelected, view:state.libraryView, opacity:state.libraryOpacity } } }).catch(() => {});
       }
       function showToast(message) { toast.querySelector('span').textContent = message; toast.hidden = false; clearTimeout(showToast.timer); showToast.timer = setTimeout(() => toast.hidden = true, 2600); }
       const fmriRecipeDefaults = {
@@ -1017,18 +1027,35 @@
         const fc = fmriRecipe('fc'); const gradients = fmriRecipe('gradients');
         return state.selected.fmri.has('fc') && state.selected.fmri.has('gradients') && fc.preset === gradients.preset && fc.filter === gradients.filter && sameAtlasSelection('fmri:fc','fmri:gradients');
       }
+      const fmriEligibleExamIds = Array.from({ length:146 }, (_, examId) => examId);
+      const fmriReuseCounts = { alff:74, reho:98, fc:112, gradients:61 };
+      const fmriReuseOffsets = { alff:11, reho:37, fc:71, gradients:103 };
+      const fmriExamPatientId = examId => examId % 104;
+      const countPatients = examIds => new Set(examIds.map(fmriExamPatientId)).size;
+      function compatibleFmriExamIds(feature, count) {
+        return new Set([...fmriEligibleExamIds]
+          .sort((left, right) => ((left * 73 + fmriReuseOffsets[feature]) % 149) - ((right * 73 + fmriReuseOffsets[feature]) % 149))
+          .slice(0, count));
+      }
       function fmriReusePlan(feature) {
         const recipe = fmriRecipe(feature); const defaults = fmriRecipeDefaults[feature];
-        let reusable = { alff:74, reho:98, fc:112, gradients:61 }[feature];
+        let reusable = fmriReuseCounts[feature];
         if (recipe.filter !== defaults.filter) reusable = feature === 'reho' ? 32 : Math.max(18, reusable - 52);
         if (recipe.preset !== defaults.preset) reusable = 0;
         const shared = feature === 'gradients' && fmriSharesGradientIntermediate();
-        if (shared) reusable = Math.max(reusable, 112);
+        let compatibleExamIds = compatibleFmriExamIds(feature, reusable);
+        if (shared) {
+          compatibleExamIds = new Set(fmriReusePlan('fc').compatibleExamIds);
+          reusable = compatibleExamIds.size;
+        }
         const timeSeriesNew = 146 - reusable;
+        const reusablePatients = countPatients([...compatibleExamIds]);
+        const newExamIds = fmriEligibleExamIds.filter(examId => !compatibleExamIds.has(examId));
+        const timeSeriesNewPatients = countPatients(newExamIds);
         const parameterChanged = fmriRecipeCustom(feature);
         const denoisedInputTitle = { alff:'ALFF 输入 BOLD', reho:'ReHo 输入 BOLD', fc:'脑区 BOLD 序列', gradients:'脑区 BOLD / 连接中间产物' }[feature];
         return {
-          reusable, timeSeriesNew, featureNew:146, shared, parameterChanged,
+          reusable, reusablePatients, timeSeriesNew, timeSeriesNewPatients, featureNew:146, compatibleExamIds, shared, parameterChanged,
           nearest:'预处理 BOLD（146 次检查的共同复用节点）',
           route:[
             { title:'BIDS 数据', detail:'172 次可用检查', status:'已有并复用', fresh:false },
@@ -1102,6 +1129,34 @@
         const items = state.units[target] || [];
         if (!items.length) return ['fmri:fc','fmri:gradients'].includes(target) ? '需选择图谱' : '仅保留体素结果';
         return items.length === 1 ? items[0].name : `${items[0].name} 等 ${items.length} 个图谱`;
+      }
+      function atlasDisplayName(atlas) {
+        return atlas && atlas.name.startsWith('BN_') && atlas.labels === 210 ? '脑网络组图谱（BN 210）' : atlas && atlas.name || '未选择图谱';
+      }
+      function isDefaultFmriAtlas(atlas) {
+        const expected = defaultFmriAtlas();
+        return Boolean(atlas && expected && atlas.name === expected.name);
+      }
+      function fmriFeatureAtlasSummary(feature) {
+        const items = state.units[`fmri:${feature}`] || [];
+        if (!items.length) return '未选择图谱';
+        if (items.length === 1) return `${atlasDisplayName(items[0])}${isDefaultFmriAtlas(items[0]) ? '（默认）' : ''}`;
+        return `${atlasDisplayName(items[0])} 等 ${items.length} 个图谱`;
+      }
+      function fmriAtlasPlanHtml(chosen) {
+        if (!chosen.length) return '';
+        const selections = chosen.map(item => ({ item, atlases:state.units[`fmri:${item.id}`] || [] }));
+        const signatures = selections.map(({ atlases }) => atlases.map(atlas => atlas.name).sort().join('|'));
+        const shared = signatures.length > 0 && signatures.every(signature => signature && signature === signatures[0]);
+        if (shared) {
+          const atlases = selections[0].atlases;
+          const label = atlases.map(atlasDisplayName).join('、');
+          const spaces = [...new Set(atlases.map(atlas => atlas.space))].join(' · ');
+          return `<li><span>当前图谱</span><b>全部指标：${esc(label)}<br><small>${esc(spaces)}</small></b></li>`;
+        }
+        const rows = selections.map(({ item, atlases }) => `<span class="icw-plan-feature">${esc(item.short)}：${esc(atlases.length ? atlases.map(atlasDisplayName).join('、') : '未选择图谱')}</span>`).join('');
+        const spaces = [...new Set(selections.flatMap(({ atlases }) => atlases.map(atlas => atlas.space)))].join(' · ');
+        return `<li><span>当前图谱</span><b>${rows}${spaces ? `<small>${esc(spaces)}</small>` : ''}</b></li>`;
       }
       function atlasSpaceSummary(target) {
         const spaces = [...new Set((state.units[target] || []).map(item => item.space))];
@@ -1219,11 +1274,12 @@
         const c = imaging[key];
         if (key === 'fmri' && stageId.startsWith('feature:')) {
           const feature = stageId.split(':')[1]; const plan = fmriReusePlan(feature);
-          return `<div><span>数据范围</span><b>${esc(c.demo.cohort)}</b></div><div><span>当前指标</span><b>${esc(fmriFeatureLabels[feature])}</b></div><div><span>可复用去噪 BOLD</span><b>${plan.reusable} 次检查</b></div><div><span>方案状态</span><b>${fmriRecipeCustom(feature) ? '已调整参数' : '推荐方案'}</b></div>`;
+          return `<div><span>数据范围</span><b>${esc(c.demo.cohort)}</b></div><div><span>当前指标</span><b>${esc(fmriFeatureLabels[feature])}</b></div><div><span>无需补充处理</span><b>${plan.reusablePatients} 位患者 · ${plan.reusable} 次检查</b></div><div><span>方案状态</span><b>${fmriRecipeCustom(feature) ? '已调整参数' : '推荐方案'}</b></div>`;
         }
         const stage = c.flow.find(item => item[2] === stageId);
-        const workload = c.waiting ? '后端接口待接入' : `${stage[4]} 位患者 · ${stage[3]} 次检查`;
-        const workloadLabel = stageId === 'bids' ? '可用于本模态' : '处于本阶段';
+        const chosen = key === 'fmri' ? c.results.filter(item => state.selected.fmri.has(item.id)) : [];
+        const workload = stageWorkload(key, c, stage, chosen);
+        const workloadLabel = key === 'fmri' && stageId === 'denoise' ? '本方案需补充' : key === 'fmri' && stageId === 'features' ? '本次待计算' : stageId === 'bids' ? '可用于本模态' : '处于本阶段';
         return `<div><span>数据范围</span><b>${esc(c.demo.cohort)}</b></div><div><span>当前阶段</span><b>${esc(stage[0])}</b></div><div><span>${esc(workloadLabel)}</span><b>${esc(workload)}</b></div><div><span>样板状态</span><b>${c.waiting ? '接口待接入' : '仅演示，不运行任务'}</b></div>`;
       }
 
@@ -1328,17 +1384,24 @@
         icons();
       }
 
-      function stageWorkload(config, step) {
-        return config.waiting ? '后端接口待接入' : `${step[4]} 位患者 · ${step[3]} 次检查`;
+      function stageWorkload(key, config, step, chosen=[]) {
+        if (config.waiting) return '后端接口待接入';
+        if (key !== 'fmri') return `${step[4]} 位患者 · ${step[3]} 次检查`;
+        const readiness = fmriReadiness(chosen);
+        if (step[2] === 'bids') return '118 位患者 · 172 次检查';
+        if (step[2] === 'preprocess') return `${readiness.eligiblePatients} 位患者 · ${readiness.eligible} 次检查`;
+        if (!chosen.length) return '0 位患者 · 0 次检查';
+        if (step[2] === 'denoise') return `${readiness.supplementPatients} 位患者 · ${readiness.supplement} 次检查`;
+        return `${readiness.eligiblePatients} 位患者 · ${readiness.eligible} 次检查`;
       }
-      function flowStepHtml(key, config, step, number) {
-        const workload = stageWorkload(config, step);
-        const fmriPrefixes = { bids:'可用：', preprocess:'已完成：', denoise:'需补去噪：', features:'可进入：' };
+      function flowStepHtml(key, config, step, number, chosen=[]) {
+        const workload = stageWorkload(key, config, step, chosen);
+        const fmriPrefixes = { bids:'已具备：', preprocess:'已完成：', denoise:'本方案需补充：', features:'本次待计算：' };
         const prefix = key === 'fmri' ? fmriPrefixes[step[2]] : step[2] === 'bids' ? '可用：' : '当前：';
         return `<button type="button" class="icw-flow-step" data-open-settings="${key}" data-settings-stage="${esc(step[2])}" aria-label="查看${esc(step[0])}阶段详情，${esc(workload)}"><span class="icw-flow-top"><span class="icw-flow-number">${esc(number)}</span><b>${esc(step[0])}</b></span><small>${esc(step[1])}</small><span class="icw-flow-queue ${config.waiting ? 'is-waiting' : ''}">${config.waiting ? '' : prefix}${esc(workload)}</span><span class="icw-flow-action">查看阶段详情 <i data-lucide="chevron-right" aria-hidden="true"></i></span></button>`;
       }
-      function pipelineHtml(key, config) {
-        if (config.flowKind !== 'branched') return `<div class="icw-flow" style="--icw-flow-columns:${config.flow.length}" aria-label="可查看详情的分析流程">${config.flow.map((step,index) => flowStepHtml(key, config, step, index + 1)).join('')}</div>`;
+      function pipelineHtml(key, config, chosen=[]) {
+        if (config.flowKind !== 'branched') return `<div class="icw-flow" style="--icw-flow-columns:${config.flow.length}" aria-label="可查看详情的分析流程">${config.flow.map((step,index) => flowStepHtml(key, config, step, index + 1, chosen)).join('')}</div>`;
         return `<div class="icw-t1-flow" aria-label="T1 加权结构像分支流程"><div class="icw-t1-origin">${flowStepHtml(key, config, config.flow[0], '1')}</div><div class="icw-t1-branches"><div class="icw-t1-branch"><div class="icw-t1-branch-label"><b>脑区形态</b><small>FreeSurfer 分支</small></div>${flowStepHtml(key, config, config.flow[1], '2A')}${flowStepHtml(key, config, config.flow[2], '3A')}</div><div class="icw-t1-branch"><div class="icw-t1-branch-label"><b>体素形态学</b><small>deepmriprep 分支</small></div>${flowStepHtml(key, config, config.flow[3], '2B')}${flowStepHtml(key, config, config.flow[4], '3B')}</div></div></div>`;
       }
 
@@ -1384,8 +1447,14 @@
 
       function fmriReadiness(chosen) {
         const plans = chosen.map(item => ({ item, plan:fmriReusePlan(item.id) }));
-        const direct = plans.length ? Math.min(...plans.map(({plan}) => plan.reusable)) : 0;
-        return { eligible:146, direct, supplement:146 - direct, unavailable:26, plans, custom:chosen.some(item => fmriRecipeCustom(item.id)) };
+        const directExamIds = plans.length ? fmriEligibleExamIds.filter(examId => plans.every(({ plan }) => plan.compatibleExamIds.has(examId))) : [];
+        const supplementExamIds = fmriEligibleExamIds.filter(examId => !directExamIds.includes(examId));
+        return {
+          eligible:146, eligiblePatients:104,
+          direct:directExamIds.length, directPatients:countPatients(directExamIds),
+          supplement:supplementExamIds.length, supplementPatients:countPatients(supplementExamIds),
+          unavailable:26, plans, custom:chosen.some(item => fmriRecipeCustom(item.id))
+        };
       }
 
       function fmriPlanHtml(chosen) {
@@ -1395,7 +1464,7 @@
         const params = readiness.plans.map(({item}) => `<span class="icw-plan-feature">${esc(item.short)}：${esc(fmriRecipeSummary(item.id))}</span>`).join('');
         const outputJobLabels = { alff:'ALFF / fALFF 结果', reho:'ReHo 结果', fc:'连接矩阵', gradients:'功能梯度' };
         const jobs = readiness.plans.map(({item,plan}) => `<span class="icw-plan-feature">${esc(item.short)} · 需补充 BOLD 去噪：${plan.timeSeriesNew} 次检查</span><span class="icw-plan-feature">${esc(item.short)} · 需生成${esc(outputJobLabels[item.id])}：${plan.featureNew} 次检查</span>`).join('');
-        return `<li><span>方案版本</span><b><span class="icw-plan-version ${readiness.custom ? 'is-custom' : ''}">${readiness.custom ? '自定义草案' : '队列推荐方案 v1.0'}</span></b></li><li><span>可分析检查</span><b>${readiness.eligible} / 172 次</b></li></ul><div class="icw-plan-metrics"><div><b>${readiness.direct}</b><span>可直接计算</span></div><div><b>${readiness.supplement}</b><span>需补充 BOLD 去噪</span></div><div class="is-warning"><b>${readiness.unavailable}</b><span>暂不可分析</span></div></div><details class="icw-plan-tech"><summary>查看技术方案</summary><ul class="icw-plan-list"><li><span>处理来源</span><b>${esc(selectionSource('fmri', chosen))}</b></li><li><span>复用节点</span><b>${nodes}</b></li><li><span>关键参数</span><b>${params}</b></li><li><span>新增处理</span><b>${jobs}</b></li></ul></details><ul class="icw-plan-list">`;
+        return `<li><span>方案版本</span><b><span class="icw-plan-version ${readiness.custom ? 'is-custom' : ''}">${readiness.custom ? '自定义草案' : '队列推荐方案 v1.0'}</span></b></li><li><span>可分析检查</span><b>${readiness.eligiblePatients} 位患者 · ${readiness.eligible} / 172 次</b></li>${fmriAtlasPlanHtml(chosen)}</ul><div class="icw-plan-metrics"><div><b>${readiness.direct}</b><span>${readiness.directPatients} 位患者 · 无需补充处理</span></div><div><b>${readiness.supplement}</b><span>${readiness.supplementPatients} 位患者 · 需补充 BOLD 去噪</span></div><div class="is-warning"><b>${readiness.unavailable}</b><span>暂不可分析</span></div></div><details class="icw-plan-tech"><summary>查看技术方案</summary><ul class="icw-plan-list"><li><span>处理来源</span><b>${esc(selectionSource('fmri', chosen))}</b></li><li><span>复用节点</span><b>${nodes}</b></li><li><span>关键参数</span><b>${params}</b></li><li><span>新增处理</span><b>${jobs}</b></li></ul></details><ul class="icw-plan-list">`;
       }
 
       function renderReadinessModal() {
@@ -1403,8 +1472,8 @@
         const readiness = fmriReadiness(chosen);
         const version = readiness.custom ? '自定义草案' : '队列推荐方案 v1.0';
         root.querySelector('#icw-readiness-body').innerHTML = `<div class="icw-setting-intro"><i data-lucide="info" aria-hidden="true"></i><span>本页只确认数据是否具备分析条件。正式系统由确定性规则返回检查结果，Agent 不决定纳入或排除。</span></div>
-          <div class="icw-readiness-summary"><div><b>172</b><span>具有可用 BIDS 数据</span></div><div><b>${readiness.eligible}</b><span>本次可纳入分析</span></div><div><b>${readiness.direct}</b><span>可直接进入特征计算</span></div><div class="is-warning"><b>${readiness.unavailable}</b><span>暂不纳入本次分析</span></div></div>
-          <div class="icw-readiness-section"><h3>本次处理安排 · ${esc(version)}</h3><div class="icw-readiness-row"><i>1</i><span><b>直接进入特征计算</b><small>已有与当前方案兼容的去噪 BOLD。</small></span><strong>${readiness.direct} 次检查</strong></div><div class="icw-readiness-row"><i>2</i><span><b>补充 BOLD 去噪</b><small>复用预处理 BOLD，完成去噪后自动进入特征计算。</small></span><strong>${readiness.supplement} 次检查</strong></div></div>
+          <div class="icw-readiness-summary"><div><b>172</b><span>具有可用 BIDS 数据</span></div><div><b>${readiness.eligible}</b><span>${readiness.eligiblePatients} 位患者 · 本次可纳入</span></div><div><b>${readiness.direct}</b><span>${readiness.directPatients} 位患者 · 无需补充处理</span></div><div class="is-warning"><b>${readiness.unavailable}</b><span>暂不纳入本次分析</span></div></div>
+          <div class="icw-readiness-section"><h3>本次处理安排 · ${esc(version)}</h3><div class="icw-readiness-row"><i>1</i><span><b>直接进入特征计算</b><small>已有与当前方案兼容的去噪 BOLD。</small></span><strong>${readiness.directPatients} 位患者 · ${readiness.direct} 次检查</strong></div><div class="icw-readiness-row"><i>2</i><span><b>补充 BOLD 去噪</b><small>复用预处理 BOLD，完成去噪后自动进入特征计算。</small></span><strong>${readiness.supplementPatients} 位患者 · ${readiness.supplement} 次检查</strong></div></div>
           <div class="icw-readiness-section"><h3>暂不可分析的原因</h3><div class="icw-readiness-row is-warning"><i>!</i><span><b>等待 fMRI 预处理完成</b><small>已有 BIDS 数据，但尚无合格的预处理 BOLD。</small></span><strong>18 次检查</strong></div><div class="icw-readiness-row is-warning"><i>!</i><span><b>等待影像质量复核</b><small>高头动或覆盖范围问题需要人工确认。</small></span><strong>5 次检查</strong></div><div class="icw-readiness-row is-warning"><i>!</i><span><b>BOLD / T1w 关联不完整</b><small>缺少本次处理所需的配套结构像关联。</small></span><strong>3 次检查</strong></div></div>
           ${readiness.custom ? '<div class="icw-setting-intro is-warning"><i data-lucide="triangle-alert" aria-hidden="true"></i><span>当前为自定义草案。正式提交时应创建新的方案版本，结果不能自动与队列推荐方案 v1.0 合并比较。</span></div>' : ''}
           <div><div class="icw-section-title"><div><h3>确认后的流程</h3><p>任务、质控和结果均保留方案版本与审计记录。</p></div></div><div class="icw-next-flow"><div><b>1 创建任务</b><small>冻结数据范围与方案版本</small></div><div><b>2 补充 BOLD 去噪</b><small>只运行缺失或不兼容步骤</small></div><div><b>3 人工质控</b><small>查看失败、头动和影像质量</small></div><div><b>4 查看结果</b><small>按患者、随访与指标查看</small></div></div></div>`;
@@ -1417,14 +1486,14 @@
         const resultRows = config.results.map(item => `<article class="icw-result" data-result="${esc(item.id)}"><div class="icw-result-main">
           <button type="button" class="icw-result-check" data-result-check="${esc(item.id)}" aria-label="选择${esc(item.title)}" aria-pressed="${state.selected[key].has(item.id)}" ${item.waiting ? 'disabled' : ''}><i data-lucide="check" aria-hidden="true"></i></button>
           <div class="icw-result-copy"><b>${esc(item.title)}<span class="icw-feature-tag ${item.blue ? 'is-blue' : ''} ${item.waiting ? 'is-waiting' : ''}">${esc(item.tag)}</span></b><p>${esc(item.summary)}</p></div>
-          <div class="icw-result-output">结果形式<b>${esc(item.output)}</b>${key === 'fmri' && !item.waiting ? `<em class="${fmriRecipeCustom(item.id) ? 'is-custom' : ''}">${fmriRecipeCustom(item.id) ? '自定义草案' : '推荐 v1.0'}</em>` : ''}</div>
+          <div class="icw-result-output">结果形式<b>${esc(item.output)}</b>${key === 'fmri' && !item.waiting ? `<span class="icw-result-atlas">图谱：${esc(fmriFeatureAtlasSummary(item.id))}<br>${esc(atlasSpaceSummary(`fmri:${item.id}`))}</span><em class="${fmriRecipeCustom(item.id) ? 'is-custom' : ''}">${fmriRecipeCustom(item.id) ? '自定义草案' : '推荐 v1.0'}</em>` : ''}</div>
           <div class="icw-result-actions"><button type="button" class="icw-result-action" data-result-expand="${esc(item.id)}" aria-label="查看${esc(item.title)}的处理路径" aria-expanded="false"><i data-lucide="route" aria-hidden="true"></i>${key === 'fmri' ? '查看处理路径' : '查看处理依据'}</button>${key === 'fmri' && !item.waiting ? `<button type="button" class="icw-result-action" data-open-feature-settings="${esc(item.id)}"><i data-lucide="sliders-horizontal" aria-hidden="true"></i>调整参数</button>` : ''}</div>
         </div><div class="icw-result-detail" hidden><dl><dt>先决条件</dt><dd>${esc(item.prereq)}</dd><dt>处理原则</dt><dd>${esc(item.rule)}</dd><dt>结果内容</dt><dd>${esc(item.files)}</dd></dl>${key === 'fmri' && !item.waiting ? fmriRecipeRouteHtml(item) : ''}${item.waiting ? '' : resultSpaceHtml(key, item)}</div></article>`).join('');
         const shared = key === 'fmri' && fmriSharesGradientIntermediate();
         return `<section class="icw-module" data-module="${key}">
           <div class="icw-module-head"><div><h2>${esc(config.title)}</h2><p>${esc(config.lead)}</p></div><button type="button" class="icw-source-button" data-toast="当前处理来源：${esc(config.source)}。"><i data-lucide="database" aria-hidden="true"></i>查看数据来源</button></div>
           <div class="icw-demo-data" aria-label="演示队列数据"><div class="icw-cohort"><b>${esc(config.demo.cohort)}</b><span>样板数据，不连接真实数据库</span></div><div><b>${esc(config.demo.subjects)}</b><span>演示患者</span></div><div><b>${esc(config.demo.visits)}</b><span>演示随访</span></div><div><b>${esc(config.demo.inputs)}</b><span>具备可用输入</span></div><div><b>${esc(config.demo.results)}</b><span>${key === 'fmri' ? '可进入分析' : '已登记结果'}</span></div></div>
-          ${pipelineHtml(key, config)}
+          ${pipelineHtml(key, config, chosen)}
           <div class="icw-module-grid"><div><div class="icw-section-title"><div><h3>选择分析结果</h3><p>默认只显示医生关心的结果，处理依据按需展开。</p></div><span class="icw-selected-count">${config.waiting ? '后端接口待接入' : `已选择 ${chosen.length} 项`}</span></div><div class="icw-results">${resultRows}</div>
           </div><aside class="icw-plan"><div class="icw-plan-head"><h3>本次方案</h3><p>${key === 'fmri' ? '先确认可分析范围，需要时再查看技术方案。' : '根据所选结果自动形成，提交前确认数据范围。'}</p></div><ul class="icw-plan-list"><li><span>数据范围</span><b>${esc(config.demo.cohort)}<br>${esc(config.demo.subjects)} 位患者 · ${esc(config.demo.visits)} 次检查</b></li><li><span>所选结果</span><b>${chosen.length ? chosen.map(item => esc(item.short)).join('、') : (config.waiting ? '尚未开放选择' : '尚未选择')}</b></li>${key === 'fmri' ? fmriPlanHtml(chosen) : `<li><span>处理来源</span><b>${esc(selectionSource(key, chosen))}</b></li><li><span>结果配置</span><b>${chosen.length ? chosen.map(item => `${esc(item.short)}：${esc(resultPlanSummary(key, item))}`).join('<br>') : '—'}</b></li><li><span>计算起点</span><b>${esc(calculationStart(key, chosen))}</b></li>`}</ul><div class="icw-plan-note ${config.waiting || blocked ? 'is-waiting' : ''}"><i data-lucide="${config.waiting || blocked ? 'circle-alert' : 'shield-check'}" aria-hidden="true"></i>${config.waiting ? '这是流程和术语样板，不代表 EEG 后端能力已经接入。' : blocked ? '至少有一个已选指标尚未选择可用的空间单位。' : key === 'fmri' && fmriReadiness(chosen).custom ? '参数调整已形成自定义草案；正式提交时应创建新方案版本。' : shared ? '功能连接与功能梯度可共享兼容中间产物；两项结果仍独立保存。' : key === 'fmri' ? '146 次检查可进入分析；另外 26 次将在分析前检查中说明原因。' : '运行前检查先决条件；不满足时说明原因，不自动替换研究方案。'}</div><button type="button" class="icw-primary-button" ${config.waiting || !chosen.length || blocked ? 'disabled' : ''} ${key === 'fmri' ? 'data-open-readiness' : `data-toast="${config.waiting ? 'EEG 后端接口尚未接入。' : '正式版本将在此进入数据范围确认。'}"`}><i data-lucide="clipboard-check" aria-hidden="true"></i>${config.waiting ? 'EEG 接口待接入' : key === 'fmri' ? '检查数据并继续' : '确认方案与数据范围'}</button></aside></div>
         </section>`;
@@ -1589,7 +1658,10 @@
         if (event.target.closest('#icw-apply-settings')) {
           if (state.settingsTab === 'bids') { state.settingsBackup = null; settingsModal.hidden = true; return; }
           if (state.settingsKey === 'fmri') ['fmri:alff','fmri:reho','fmri:fc','fmri:gradients'].forEach(target => {
-            state.units[target] = state.units[target].filter(atlas => atlasEligibility(atlas, target).ok);
+            const previousDefault = defaultFmriAtlasForSpace(state.settingsBackup && state.settingsBackup.outputSpace);
+            const onlyPreviousDefault = previousDefault && state.units[target].length === 1 && state.units[target][0].name === previousDefault.name;
+            state.units[target] = onlyPreviousDefault ? [{ ...defaultFmriAtlas() }] : state.units[target].filter(atlas => atlasEligibility(atlas, target).ok);
+            if (!state.units[target].length) state.units[target] = [{ ...defaultFmriAtlas() }];
             const allowed = new Set(builtinOptions(target).filter(item => item[2]).map(item => item[0]));
             state.builtins[target] = new Set(Array.from(state.builtins[target]).filter(value => allowed.has(value)));
           });
@@ -1644,7 +1716,21 @@
       });
       root.querySelector('.icw-menu-button').addEventListener('click', () => { sidebar.classList.add('is-open'); scrim.classList.add('is-open'); });
       root.querySelector('.icw-close-button').addEventListener('click', closeNav); scrim.addEventListener('click', closeNav);
-      window.addEventListener('openai:set_globals', event => { const next = event.detail && event.detail.globals && event.detail.globals.widgetState && event.detail.globals.widgetState.privateContent; if (!next) return; if (next.page) state.page = next.page; if (next.units) Object.keys(state.units).forEach(target => { if (Array.isArray(next.units[target])) state.units[target] = next.units[target].map(item => catalogItem(item && item.name)).filter(Boolean).map(item => ({ ...item })); }); if (next.builtins) Object.keys(state.builtins).forEach(target => { if (Array.isArray(next.builtins[target])) state.builtins[target] = new Set(next.builtins[target]); }); if (next.selected) Object.keys(imaging).forEach(key => { if (Array.isArray(next.selected[key])) state.selected[key] = new Set(next.selected[key]); }); if (next.settings) Object.keys(defaultSettings).forEach(key => state.settings[key] = { ...defaultSettings[key], ...(next.settings[key] || {}) }); if (next.library) { state.librarySelected = next.library.selected || state.librarySelected; state.libraryView = next.library.view || state.libraryView; if (Number.isFinite(next.library.opacity)) state.libraryOpacity = next.library.opacity; } render(); });
+      window.addEventListener('openai:set_globals', event => {
+        const next = event.detail && event.detail.globals && event.detail.globals.widgetState && event.detail.globals.widgetState.privateContent;
+        if (!next) return;
+        if (next.page) state.page = next.page;
+        if (next.settings) Object.keys(defaultSettings).forEach(key => state.settings[key] = { ...defaultSettings[key], ...(next.settings[key] || {}) });
+        if (state.settings.fmri.pipeline === 'deepprep') state.settings.fmri.longitudinal = 'session';
+        if (next.units) Object.keys(state.units).forEach(target => {
+          if (next.version !== prototypeStateVersion && target.startsWith('fmri:')) state.units[target] = [{ ...defaultFmriAtlas() }];
+          else if (Array.isArray(next.units[target])) state.units[target] = next.units[target].map(item => catalogItem(item && item.name)).filter(Boolean).map(item => ({ ...item }));
+        });
+        if (next.builtins) Object.keys(state.builtins).forEach(target => { if (Array.isArray(next.builtins[target])) state.builtins[target] = new Set(next.builtins[target]); });
+        if (next.selected) Object.keys(imaging).forEach(key => { if (Array.isArray(next.selected[key])) state.selected[key] = new Set(next.selected[key]); });
+        if (next.library) { state.librarySelected = next.library.selected || state.librarySelected; state.libraryView = next.library.view || state.libraryView; if (Number.isFinite(next.library.opacity)) state.libraryOpacity = next.library.opacity; }
+        render();
+      });
       window.addEventListener('resize', () => { if (state.page === 'atlases') drawAtlasViewer(); });
       render();
     })();
