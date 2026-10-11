@@ -764,13 +764,13 @@
           lead: '选择指标后加载推荐处理方案；系统从最深的兼容结果继续计算，不重复执行已完成步骤。',
           demo: { cohort:'认知障碍随访队列（演示）', subjects:128, visits:196, inputs:172, results:146 },
           source: 'fMRIPrep / DeepPrep', output: '体素图、脑区表或连接矩阵',
-          flow:[['BIDS 数据','查看转换结果、采集质控与失败原因','bids',172,118],['fMRI 预处理','校正、配准与空间标准化','preprocess',146,104],['时间序列处理','按所选指标应用兼容的去噪与滤波方案','denoise',48,38],['fMRI 特征提取','ALFF/fALFF、ReHo、功能连接或功能梯度','features',146,104]],
+          flow:[['BIDS 数据','查看转换结果、采集质控与失败原因','bids',172,118],['fMRI 预处理','校正、配准与空间标准化','preprocess',146,104],['BOLD 信号去噪','混杂信号回归、高头动帧处理与时域滤波','denoise',48,38],['fMRI 特征提取','ALFF/fALFF、ReHo、功能连接或功能梯度','features',146,104]],
           selected: ['reho'],
           results: [
-            { id:'alff', title:'低频振幅（ALFF）/ 低频振幅分数（fALFF）', short:'ALFF / fALFF', tag:'常用', summary:'反映静息态信号低频振荡的幅度及其相对占比。', output:'体素图 / 脑区表', prereq:'fMRIPrep 或 DeepPrep 结果；读取未做带通滤波的后处理时间序列。', rule:'剔除帧先插值后进行频谱计算；频段用于频谱取值，不等同于预先带通滤波。', files:'ALFF、fALFF 图及可选的脑区均值表。' },
-            { id:'reho', title:'局部一致性（ReHo）', short:'ReHo', tag:'常用', summary:'衡量局部相邻体素时间序列的一致程度。', output:'体素图 / 脑区表', prereq:'fMRIPrep 或 DeepPrep 结果及一条可用的后处理管线。', rule:'在未平滑时间序列上计算 Kendall 和谐系数；派生体素图可在计算后平滑。', files:'ReHo 体素图及可选的脑区均值表。' },
-            { id:'fc', title:'静息态功能连接', short:'功能连接', tag:'需图谱', blue:true, summary:'计算脑区平均时间序列之间的 Pearson 相关并进行 Fisher z 变换。', output:'脑区表 / 连接矩阵', prereq:'fMRIPrep 或 DeepPrep 结果、可用后处理管线及一个脑区图谱。', rule:'每个脑区先汇总时间序列，再计算两两相关；矩阵对角线为空值。', files:'Fisher-z 连接矩阵与各脑区平均连接强度。' },
-            { id:'gradients', title:'功能梯度', short:'功能梯度', tag:'需图谱', summary:'从脑区功能连接结构中提取反映大尺度功能组织连续变化的梯度成分。', output:'脑区梯度表', prereq:'fMRIPrep 或 DeepPrep 结果、可用后处理管线及一个脑区图谱。', rule:'与功能连接共享合格的去噪时间序列，但作为独立特征配置和结果保存；不使用 ReHo 的邻域或平滑参数。', files:'所选图谱各脑区的功能梯度成分及来源记录。' }
+            { id:'alff', title:'低频振幅（ALFF）/ 低频振幅分数（fALFF）', short:'ALFF / fALFF', tag:'常用', summary:'反映静息态信号低频振荡的幅度及其相对占比。', output:'体素图 / 脑区表', prereq:'fMRIPrep 或 DeepPrep 预处理 BOLD；完成混杂回归，但不预先进行带通滤波。', rule:'剔除帧先插值后进行频谱计算；频段用于频谱取值，不等同于预先带通滤波。', files:'ALFF、fALFF 图及可选的脑区均值表。' },
+            { id:'reho', title:'局部一致性（ReHo）', short:'ReHo', tag:'常用', summary:'衡量局部相邻体素时间序列的一致程度。', output:'体素图 / 脑区表', prereq:'fMRIPrep 或 DeepPrep 预处理 BOLD，以及与 ReHo 方案兼容的去噪 BOLD。', rule:'在未平滑 BOLD 上计算 Kendall 和谐系数；派生体素图可在计算后平滑。', files:'ReHo 体素图及可选的脑区均值表。' },
+            { id:'fc', title:'静息态功能连接', short:'功能连接', tag:'需图谱', blue:true, summary:'计算脑区平均时间序列之间的 Pearson 相关并进行 Fisher z 变换。', output:'脑区表 / 连接矩阵', prereq:'fMRIPrep 或 DeepPrep 预处理 BOLD、与方案兼容的去噪 BOLD，以及一个脑区图谱。', rule:'每个脑区先汇总 BOLD 序列，再计算两两相关；矩阵对角线为空值。', files:'Fisher-z 连接矩阵与各脑区平均连接强度。' },
+            { id:'gradients', title:'功能梯度', short:'功能梯度', tag:'需图谱', summary:'从脑区功能连接结构中提取反映大尺度功能组织连续变化的梯度成分。', output:'脑区梯度表', prereq:'fMRIPrep 或 DeepPrep 预处理 BOLD、与方案兼容的去噪 BOLD，以及一个脑区图谱。', rule:'可与功能连接共享兼容的脑区 BOLD 序列或连接中间产物，但作为独立特征配置和结果保存；不使用 ReHo 的邻域或平滑参数。', files:'所选图谱各脑区的功能梯度成分及来源记录。' }
           ]
         },
         dwi: {
@@ -1000,13 +1000,14 @@
         if (shared) reusable = Math.max(reusable, 112);
         const timeSeriesNew = 146 - reusable;
         const parameterChanged = fmriRecipeCustom(feature);
+        const denoisedInputTitle = { alff:'ALFF 输入 BOLD', reho:'ReHo 输入 BOLD', fc:'脑区 BOLD 序列', gradients:'脑区 BOLD / 连接中间产物' }[feature];
         return {
           reusable, timeSeriesNew, featureNew:146, shared, parameterChanged,
           nearest:'预处理 BOLD（146 次检查的共同复用节点）',
           route:[
             { title:'BIDS 数据', detail:'172 次可用检查', status:'已有并复用', fresh:false },
             { title:'预处理 BOLD', detail:'146 次参数与空间兼容', status:'最近共同节点', fresh:false },
-            { title:`${fmriFeatureLabels[feature]} 时间序列`, detail:shared ? `${reusable} 次与功能连接共享，${timeSeriesNew} 次新增` : `${reusable} 次复用，${timeSeriesNew} 次新增`, status:timeSeriesNew ? '部分新增' : '全部复用', fresh:timeSeriesNew > 0 },
+            { title:denoisedInputTitle, detail:shared ? `${reusable} 次与功能连接共享，${timeSeriesNew} 次新增` : `${reusable} 次复用，${timeSeriesNew} 次新增`, status:timeSeriesNew ? '部分新增' : '全部复用', fresh:timeSeriesNew > 0 },
             { title:`${fmriFeatureLabels[feature]} 计算`, detail:`146 次检查${parameterChanged ? '，参数已调整' : ''}`, status:'本次计算', fresh:true }
           ]
         };
@@ -1055,7 +1056,7 @@
       }
 
       const stagesByType = {
-        fmri:[['bids','BIDS 数据'],['preprocess','fMRI 预处理'],['denoise','时间序列处理'],['features','fMRI 特征提取']],
+        fmri:[['bids','BIDS 数据'],['preprocess','fMRI 预处理'],['denoise','BOLD 信号去噪'],['features','fMRI 特征提取']],
         dwi:[['bids','BIDS 数据'],['preprocess','DWI 预处理'],['tensor','扩散模型拟合'],['features','DTI 特征提取']],
         t1:[['bids','BIDS 数据'],['freesurfer','FreeSurfer 结构像处理'],['morphometry','脑区形态特征提取'],['vbmprocess','deepmriprep VBM 处理'],['vbmfeatures','VBM 特征提取']],
         eeg:[['bids','EEG-BIDS 数据'],['preprocess','EEG 预处理'],['features','EEG 特征提取']]
@@ -1065,7 +1066,7 @@
         const s = state.settings[key];
         if (key === 'fmri') {
           const pipeline = s.pipeline === 'fmriprep' ? 'fMRIPrep' : 'DeepPrep';
-          return `${pipeline} · ${s.outputSpace} · 按特征加载时间序列方案`;
+          return `${pipeline} · ${s.outputSpace} · 按特征加载 BOLD 去噪方案`;
         }
         if (key === 'dwi') return `QSIPrep · ${s.resolution} mm · ${{ off:'不启用 SyN', warn:'SyN 畸变校正（按数据判断）' }[s.synSdc]}`;
         if (key === 't1') return 'FreeSurfer 脑区形态 · deepmriprep VBM';
@@ -1192,7 +1193,7 @@
         const c = imaging[key];
         if (key === 'fmri' && stageId.startsWith('feature:')) {
           const feature = stageId.split(':')[1]; const plan = fmriReusePlan(feature);
-          return `<div><span>数据范围</span><b>${esc(c.demo.cohort)}</b></div><div><span>当前指标</span><b>${esc(fmriFeatureLabels[feature])}</b></div><div><span>可复用时间序列</span><b>${plan.reusable} 次检查</b></div><div><span>方案状态</span><b>${fmriRecipeCustom(feature) ? '已调整参数' : '推荐方案'}</b></div>`;
+          return `<div><span>数据范围</span><b>${esc(c.demo.cohort)}</b></div><div><span>当前指标</span><b>${esc(fmriFeatureLabels[feature])}</b></div><div><span>可复用去噪 BOLD</span><b>${plan.reusable} 次检查</b></div><div><span>方案状态</span><b>${fmriRecipeCustom(feature) ? '已调整参数' : '推荐方案'}</b></div>`;
         }
         const stage = c.flow.find(item => item[2] === stageId);
         const workload = c.waiting ? '后端接口待接入' : `${stage[4]} 位患者 · ${stage[3]} 次检查`;
@@ -1204,13 +1205,13 @@
         const s = state.settings[key];
         if (key === 'fmri' && tab.startsWith('feature:')) {
           const feature = tab.split(':')[1]; const prefix = feature; const plan = fmriReusePlan(feature);
-          const common = `${settingRow('时间序列方案','推荐方案只填充已批准的常用参数，保存后形成独立配置版本。',settingSelect(`${prefix}Preset`,s[`${prefix}Preset`],[['simple','基础混杂回归'],['scrubbing','高头动帧剔除'],['compcor','CompCor'],['motion24','Friston-24'],['36p','36 参数']]))}${settingRow('时间滤波',feature === 'alff' ? 'ALFF/fALFF 读取不做带通滤波的时间序列；频段在特征计算时使用。' : '只影响当前指标的时间序列方案，不修改其他指标。',settingSegments(`${prefix}Filter`,s[`${prefix}Filter`],feature === 'alff' ? [['none','不做带通滤波']] : [['none','不做带通滤波'],['0.01-0.1','0.01–0.1 Hz'],['0.01-0.08','0.01–0.08 Hz']]))}`;
+          const common = `${settingRow('BOLD 去噪方案','推荐方案只填充已批准的常用参数，保存后形成独立配置版本。',settingSelect(`${prefix}Preset`,s[`${prefix}Preset`],[['simple','基础混杂回归'],['scrubbing','高头动帧剔除'],['compcor','CompCor'],['motion24','Friston-24'],['36p','36 参数']]))}${settingRow('时域滤波',feature === 'alff' ? 'ALFF/fALFF 读取不做带通滤波的去噪 BOLD；频段在特征计算时使用。' : '只影响当前指标的 BOLD 去噪方案，不修改其他指标。',settingSegments(`${prefix}Filter`,s[`${prefix}Filter`],feature === 'alff' ? [['none','不做带通滤波']] : [['none','不做带通滤波'],['0.01-0.1','0.01–0.1 Hz'],['0.01-0.08','0.01–0.08 Hz']]))}`;
           let specific = '';
           if (feature === 'alff') specific = `${settingRow('频率范围','用于 ALFF/fALFF 的频谱取值。',settingSelect('alffBand',s.alffBand,[['0.01-0.08','0.01–0.08 Hz'],['0.01-0.1','0.01–0.1 Hz'],['0.027-0.073','0.027–0.073 Hz（slow-4）']]))}${settingRow('数值输出','可保留原始值，或进行全脑均值 / z 标准化。',settingSegments('alffNormalization',s.alffNormalization,[['raw','原始值'],['m','均值标准化'],['z','z 标准分数']]))}`;
-          if (feature === 'reho') specific = `${settingRow('ReHo 邻域','Kendall 和谐系数计算使用的相邻体素数；修改后不重算时间序列。',settingSegments('rehoNeighbourhood',s.rehoNeighbourhood,[['27','27 体素'],['19','19 体素'],['7','7 体素']]))}${settingRow('结果图平滑','先在未平滑时间序列上计算 ReHo，再对派生结果图平滑。',settingSegments('rehoSmoothing',s.rehoSmoothing,[['0','无'],['4','4 mm'],['6','6 mm']]))}`;
+          if (feature === 'reho') specific = `${settingRow('ReHo 邻域','Kendall 和谐系数计算使用的相邻体素数；修改后不重算去噪 BOLD。',settingSegments('rehoNeighbourhood',s.rehoNeighbourhood,[['27','27 体素'],['19','19 体素'],['7','7 体素']]))}${settingRow('结果图平滑','先在未平滑 BOLD 上计算 ReHo，再对派生结果图平滑。',settingSegments('rehoSmoothing',s.rehoSmoothing,[['0','无'],['4','4 mm'],['6','6 mm']]))}`;
           if (feature === 'fc') specific = settingRow('连接方法','脑区时间序列之间的连接估计。',settingSegments('fcMethod',s.fcMethod,[['pearson','Pearson 相关'],['partial','偏相关']]));
           if (feature === 'gradients') specific = settingRow('梯度成分','保存的主要梯度成分数量。',settingSegments('gradientComponents',s.gradientComponents,[['3','3 个'],['5','5 个'],['10','10 个']]));
-          return `<div class="icw-setting-intro"><i data-lucide="route" aria-hidden="true"></i><span>当前只调整 ${esc(fmriFeatureLabels[feature])}；系统会重新匹配缓存并从最深兼容节点继续。</span></div><div class="icw-setting-group"><h3>推荐时间序列方案</h3>${common}</div><div class="icw-setting-group"><h3>${esc(fmriFeatureLabels[feature])} 计算参数</h3>${specific}</div><div class="icw-setting-group"><h3>预计复用</h3>${infoRow('最近共同节点','全部 146 次检查均可复用此前结果。',plan.nearest)}${infoRow('时间序列处理',`${plan.reusable} 次直接复用；其余按当前参数生成。`,`${plan.timeSeriesNew} 次新增`) }${infoRow('特征计算','形成当前指标的独立、可追踪结果。',`${plan.featureNew} 次计算`)}</div>`;
+          return `<div class="icw-setting-intro"><i data-lucide="route" aria-hidden="true"></i><span>当前只调整 ${esc(fmriFeatureLabels[feature])}；系统会重新匹配缓存并从最深兼容节点继续。</span></div><div class="icw-setting-group"><h3>推荐 BOLD 去噪方案</h3>${common}</div><div class="icw-setting-group"><h3>${esc(fmriFeatureLabels[feature])} 计算参数</h3>${specific}</div><div class="icw-setting-group"><h3>预计复用</h3>${infoRow('最近共同节点','全部 146 次检查均可复用此前结果。',plan.nearest)}${infoRow('BOLD 去噪',`${plan.reusable} 次直接复用兼容结果；其余按当前参数生成。`,`${plan.timeSeriesNew} 次新增`) }${infoRow('特征计算','形成当前指标的独立、可追踪结果。',`${plan.featureNew} 次计算`)}</div>`;
         }
         if (tab === 'bids') {
           if (key === 'fmri') return `<div class="icw-setting-intro"><i data-lucide="folder-check" aria-hidden="true"></i><span>DICOM 已在 Agent 工作台完成导入与 BIDS 转换；这里仅查看可用检查、转换失败原因和采集质控，不提供处理参数。</span></div><div class="icw-setting-group"><h3>BIDS 状态</h3>${infoRow('可用检查','已建立患者、随访与静息态 BOLD / T1w 的明确关联。','118 位患者 · 172 次检查')}${infoRow('BIDS 路径','正式接入后按所选检查显示真实路径。','sub-<id> / ses-<visit>')}${infoRow('Validator','展示 BIDS Validator 结果与阻断原因。','166 通过 · 6 待处理')}${infoRow('原始来源','原始 DICOM 保持不可变，转换记录可追踪。','Agent 工作台')}</div>`;
@@ -1220,7 +1221,7 @@
         }
         if (key === 'fmri' && tab === 'preprocess') {
           const isFmriprep = s.pipeline === 'fmriprep';
-          return `<div class="icw-setting-intro"><i data-lucide="info" aria-hidden="true"></i><span>预处理负责校正、配准和标准化；时间滤波由每个指标自己的“时间序列处理”方案设置。</span></div>
+          return `<div class="icw-setting-intro"><i data-lucide="info" aria-hidden="true"></i><span>预处理负责校正、配准和标准化；混杂回归、高头动帧处理与时域滤波由各指标的 BOLD 去噪方案设置。</span></div>
             <div class="icw-setting-group"><h3>处理引擎</h3>
             ${settingRow('预处理管线','按项目已安装并验证的版本选择。',settingSegments('pipeline',s.pipeline,[['fmriprep','fMRIPrep 25.2.3'],['deepprep','DeepPrep 25.1.0']]))}
             ${settingRow('标准空间','决定标准空间体素结果的参照模板。',settingSelect('outputSpace',s.outputSpace,[['MNI152NLin2009cAsym','MNI152NLin2009cAsym'],['MNI152NLin6Asym','MNI152NLin6Asym']]))}
@@ -1231,7 +1232,7 @@
         }
         if (key === 'fmri' && tab === 'denoise') {
           const chosen = imaging.fmri.results.filter(item => state.selected.fmri.has(item.id));
-          return `<div class="icw-setting-intro"><i data-lucide="git-branch" aria-hidden="true"></i><span>这里不是一份全局去噪文件。每个指标加载自己的推荐时间序列方案；只有输入、参数和空间一致时才复用中间产物。</span></div><div class="icw-setting-group"><h3>当前所选指标</h3>${chosen.length ? chosen.map(item => settingRow(item.short,fmriRecipeSummary(item.id),`<button type="button" class="icw-secondary-button" data-open-feature-settings="${item.id}"><i data-lucide="sliders-horizontal" aria-hidden="true"></i>调整参数</button>`)).join('') : '<div class="icw-setting-intro is-warning"><i data-lucide="circle-alert" aria-hidden="true"></i><span>请先在主页面选择至少一个 fMRI 指标。</span></div>'}</div><div class="icw-setting-intro"><i data-lucide="shield-check" aria-hidden="true"></i><span>正式系统按工件身份确定性匹配缓存；Agent 不参与处理路径或复用判断。</span></div>`;
+          return `<div class="icw-setting-intro"><i data-lucide="git-branch" aria-hidden="true"></i><span>这里不是一份供全部指标共用的去噪文件。每个指标加载自己的推荐 BOLD 去噪方案；只有输入、参数和空间一致时才复用中间产物。</span></div><div class="icw-setting-group"><h3>当前所选指标</h3>${chosen.length ? chosen.map(item => settingRow(item.short,fmriRecipeSummary(item.id),`<button type="button" class="icw-secondary-button" data-open-feature-settings="${item.id}"><i data-lucide="sliders-horizontal" aria-hidden="true"></i>调整参数</button>`)).join('') : '<div class="icw-setting-intro is-warning"><i data-lucide="circle-alert" aria-hidden="true"></i><span>请先在主页面选择至少一个 fMRI 指标。</span></div>'}</div><div class="icw-setting-intro"><i data-lucide="shield-check" aria-hidden="true"></i><span>正式系统按工件身份确定性匹配缓存；Agent 不参与处理路径或复用判断。</span></div>`;
         }
         if (key === 'fmri' && tab === 'features') {
           return `<div class="icw-setting-intro"><i data-lucide="list-checks" aria-hidden="true"></i><span>每个指标形成独立结果身份；功能梯度可复用兼容中间产物，但不要求先发布功能连接。</span></div><div class="icw-setting-group"><h3>特征边界</h3>${infoRow('ALFF / fALFF','频段用于频谱取值，不先做带通滤波。','独立体素结果')}${infoRow('ReHo','未平滑时间序列计算，之后可平滑结果图。','独立体素结果')}${infoRow('功能连接','图谱脑区时间序列、相关矩阵及 Fisher z。','独立矩阵结果')}${infoRow('功能梯度','可读取兼容的 ROI 时间序列/连接中间产物。','独立梯度结果')}</div>`;
@@ -1260,7 +1261,7 @@
         const lifecycle = {
           bids:'BIDS 数据由 Agent 工作台生成；模态页面只读展示状态与失败原因。',
           preprocess:'预处理策略单独版本化；参数变化可能重新处理适用数据，已有结果保留。',
-          denoise:'各指标的时间序列方案单独版本化；只有参数兼容的中间产物才会复用。',
+          denoise:'各指标的 BOLD 去噪方案单独版本化；只有参数兼容的中间产物才会复用。',
           features:'特征提取读取合格的上游产物；参数变化不会无条件重跑预处理。',
           tensor:'张量拟合参数属于 DTI 特征配置，不会重跑 QSIPrep。',
           freesurfer:'FreeSurfer 处理与 VBM 分支相互独立，按所选特征运行。',
@@ -1306,7 +1307,7 @@
       }
       function flowStepHtml(key, config, step, number) {
         const workload = stageWorkload(config, step);
-        const fmriPrefixes = { bids:'可用：', preprocess:'已完成：', denoise:'需补处理：', features:'可进入：' };
+        const fmriPrefixes = { bids:'可用：', preprocess:'已完成：', denoise:'需补去噪：', features:'可进入：' };
         const prefix = key === 'fmri' ? fmriPrefixes[step[2]] : step[2] === 'bids' ? '可用：' : '当前：';
         return `<button type="button" class="icw-flow-step" data-open-settings="${key}" data-settings-stage="${esc(step[2])}" aria-label="查看${esc(step[0])}阶段详情，${esc(workload)}"><span class="icw-flow-top"><span class="icw-flow-number">${esc(number)}</span><b>${esc(step[0])}</b></span><small>${esc(step[1])}</small><span class="icw-flow-queue ${config.waiting ? 'is-waiting' : ''}">${config.waiting ? '' : prefix}${esc(workload)}</span><span class="icw-flow-action">查看阶段详情 <i data-lucide="chevron-right" aria-hidden="true"></i></span></button>`;
       }
@@ -1366,8 +1367,9 @@
         const readiness = fmriReadiness(chosen);
         const nodes = readiness.plans.map(({item,plan}) => `<span class="icw-plan-feature">${esc(item.short)}：${esc(plan.nearest)}</span>`).join('');
         const params = readiness.plans.map(({item}) => `<span class="icw-plan-feature">${esc(item.short)}：${esc(fmriRecipeSummary(item.id))}</span>`).join('');
-        const jobs = readiness.plans.map(({item,plan}) => `<span class="icw-plan-feature">${esc(item.short)}：${plan.timeSeriesNew} 次时间序列处理 + ${plan.featureNew} 次特征计算</span>`).join('');
-        return `<li><span>方案版本</span><b><span class="icw-plan-version ${readiness.custom ? 'is-custom' : ''}">${readiness.custom ? '自定义草案' : '队列推荐方案 v1.0'}</span></b></li><li><span>可分析检查</span><b>${readiness.eligible} / 172 次</b></li></ul><div class="icw-plan-metrics"><div><b>${readiness.direct}</b><span>可直接计算</span></div><div><b>${readiness.supplement}</b><span>需自动补处理</span></div><div class="is-warning"><b>${readiness.unavailable}</b><span>暂不可分析</span></div></div><details class="icw-plan-tech"><summary>查看技术方案</summary><ul class="icw-plan-list"><li><span>处理来源</span><b>${esc(selectionSource('fmri', chosen))}</b></li><li><span>复用节点</span><b>${nodes}</b></li><li><span>关键参数</span><b>${params}</b></li><li><span>新增计算</span><b>${jobs}</b></li></ul></details><ul class="icw-plan-list">`;
+        const outputJobLabels = { alff:'ALFF / fALFF 结果', reho:'ReHo 结果', fc:'连接矩阵', gradients:'功能梯度' };
+        const jobs = readiness.plans.map(({item,plan}) => `<span class="icw-plan-feature">${esc(item.short)} · 需补充 BOLD 去噪：${plan.timeSeriesNew} 次检查</span><span class="icw-plan-feature">${esc(item.short)} · 需生成${esc(outputJobLabels[item.id])}：${plan.featureNew} 次检查</span>`).join('');
+        return `<li><span>方案版本</span><b><span class="icw-plan-version ${readiness.custom ? 'is-custom' : ''}">${readiness.custom ? '自定义草案' : '队列推荐方案 v1.0'}</span></b></li><li><span>可分析检查</span><b>${readiness.eligible} / 172 次</b></li></ul><div class="icw-plan-metrics"><div><b>${readiness.direct}</b><span>可直接计算</span></div><div><b>${readiness.supplement}</b><span>需补充 BOLD 去噪</span></div><div class="is-warning"><b>${readiness.unavailable}</b><span>暂不可分析</span></div></div><details class="icw-plan-tech"><summary>查看技术方案</summary><ul class="icw-plan-list"><li><span>处理来源</span><b>${esc(selectionSource('fmri', chosen))}</b></li><li><span>复用节点</span><b>${nodes}</b></li><li><span>关键参数</span><b>${params}</b></li><li><span>新增处理</span><b>${jobs}</b></li></ul></details><ul class="icw-plan-list">`;
       }
 
       function renderReadinessModal() {
@@ -1376,10 +1378,10 @@
         const version = readiness.custom ? '自定义草案' : '队列推荐方案 v1.0';
         root.querySelector('#icw-readiness-body').innerHTML = `<div class="icw-setting-intro"><i data-lucide="info" aria-hidden="true"></i><span>本页只确认数据是否具备分析条件。正式系统由确定性规则返回检查结果，Agent 不决定纳入或排除。</span></div>
           <div class="icw-readiness-summary"><div><b>172</b><span>具有可用 BIDS 数据</span></div><div><b>${readiness.eligible}</b><span>本次可纳入分析</span></div><div><b>${readiness.direct}</b><span>可直接进入特征计算</span></div><div class="is-warning"><b>${readiness.unavailable}</b><span>暂不纳入本次分析</span></div></div>
-          <div class="icw-readiness-section"><h3>本次处理安排 · ${esc(version)}</h3><div class="icw-readiness-row"><i>1</i><span><b>直接进入特征计算</b><small>已有与当前方案兼容的时间序列结果。</small></span><strong>${readiness.direct} 次检查</strong></div><div class="icw-readiness-row"><i>2</i><span><b>自动补充时间序列处理</b><small>复用预处理结果，补完后自动进入特征计算。</small></span><strong>${readiness.supplement} 次检查</strong></div></div>
+          <div class="icw-readiness-section"><h3>本次处理安排 · ${esc(version)}</h3><div class="icw-readiness-row"><i>1</i><span><b>直接进入特征计算</b><small>已有与当前方案兼容的去噪 BOLD。</small></span><strong>${readiness.direct} 次检查</strong></div><div class="icw-readiness-row"><i>2</i><span><b>补充 BOLD 去噪</b><small>复用预处理 BOLD，完成去噪后自动进入特征计算。</small></span><strong>${readiness.supplement} 次检查</strong></div></div>
           <div class="icw-readiness-section"><h3>暂不可分析的原因</h3><div class="icw-readiness-row is-warning"><i>!</i><span><b>等待 fMRI 预处理完成</b><small>已有 BIDS 数据，但尚无合格的预处理 BOLD。</small></span><strong>18 次检查</strong></div><div class="icw-readiness-row is-warning"><i>!</i><span><b>等待影像质量复核</b><small>高头动或覆盖范围问题需要人工确认。</small></span><strong>5 次检查</strong></div><div class="icw-readiness-row is-warning"><i>!</i><span><b>BOLD / T1w 关联不完整</b><small>缺少本次处理所需的配套结构像关联。</small></span><strong>3 次检查</strong></div></div>
           ${readiness.custom ? '<div class="icw-setting-intro is-warning"><i data-lucide="triangle-alert" aria-hidden="true"></i><span>当前为自定义草案。正式提交时应创建新的方案版本，结果不能自动与队列推荐方案 v1.0 合并比较。</span></div>' : ''}
-          <div><div class="icw-section-title"><div><h3>确认后的流程</h3><p>任务、质控和结果均保留方案版本与审计记录。</p></div></div><div class="icw-next-flow"><div><b>1 创建任务</b><small>冻结数据范围与方案版本</small></div><div><b>2 自动补处理</b><small>只运行缺失或不兼容步骤</small></div><div><b>3 人工质控</b><small>查看失败、头动和影像质量</small></div><div><b>4 查看结果</b><small>按患者、随访与指标查看</small></div></div></div>`;
+          <div><div class="icw-section-title"><div><h3>确认后的流程</h3><p>任务、质控和结果均保留方案版本与审计记录。</p></div></div><div class="icw-next-flow"><div><b>1 创建任务</b><small>冻结数据范围与方案版本</small></div><div><b>2 补充 BOLD 去噪</b><small>只运行缺失或不兼容步骤</small></div><div><b>3 人工质控</b><small>查看失败、头动和影像质量</small></div><div><b>4 查看结果</b><small>按患者、随访与指标查看</small></div></div></div>`;
         readinessModal.hidden = false; icons();
       }
 

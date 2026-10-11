@@ -18,18 +18,18 @@ const required = [
   '静息态 EEG',
   '平台图谱库',
   'BIDS 数据',
-  '时间序列处理',
+  'BOLD 信号去噪',
   'fMRI 特征提取',
   '功能梯度',
   '复用节点',
   '查看处理路径',
   '调整参数',
   '推荐方案',
-  '可复用时间序列',
+  '可复用去噪 BOLD',
   '队列推荐方案 v1.0',
   '自定义草案',
   '可直接计算',
-  '需自动补处理',
+  '需补充 BOLD 去噪',
   '暂不可分析',
   '分析前检查',
   '检查数据并继续',
@@ -57,6 +57,9 @@ if (source.includes('<span>运行原则</span>') || source.includes("state.units
 }
 if (source.includes("if (key === 'fmri') return '从已完成的静息态 fMRI 去噪结果开始'")) {
   failures.push('fMRI must determine the deepest compatible artifact instead of assuming one global denoised input.');
+}
+if (source.includes('34 + 146') || source.includes('时间序列处理')) {
+  failures.push('fMRI must separate BOLD denoising from feature calculation and use the approved stage term.');
 }
 if (!source.includes("selected: ['reho']") || !source.includes('reusable = { alff:74, reho:98, fc:112, gradients:61 }')) {
   failures.push('The approved ReHo cache-reuse demonstration is missing.');
