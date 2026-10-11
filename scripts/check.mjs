@@ -37,9 +37,12 @@ const required = [
   '暂不可分析',
   '分析前检查',
   '检查数据并继续',
-  'DTI 特征提取',
+  '扩散张量拟合',
+  'DTI 指标生成',
   'FreeSurfer 结构像处理',
+  '脑区形态结果生成',
   'deepmriprep VBM 处理',
+  'VBM 结果发布',
   'EEG 特征提取'
 ];
 
@@ -82,6 +85,27 @@ if (!source.includes('fmriSharesGradientIntermediate')) {
 }
 if (!source.includes("flowKind:'branched'")) {
   failures.push('T1 must retain separate FreeSurfer and deepmriprep branches.');
+}
+if (!source.includes('function dtiReadiness(chosen=[])') || !source.includes('dtiDefaultFinalExamIds') || !source.includes('fromPreprocessedExamIds')) {
+  failures.push('DTI must model reusable QSIPrep, tensor, and final-result artifact sets.');
+}
+if (!source.includes("const tensorChanged = s.maxBValue !== defaults.maxBValue") || !source.includes('preprocessChanged && !tensorChanged')) {
+  failures.push('DTI tensor settings must preserve compatible QSIPrep results.');
+}
+if (!source.includes('function t1Readiness(chosen=[])') || !source.includes('t1DefaultMorphometryExamIds') || !source.includes('t1DefaultVbmFinalExamIds')) {
+  failures.push('T1 must model FreeSurfer and VBM caches as separate branches.');
+}
+if (!source.includes("state.settings.t1.fsLongitudinal !== defaultSettings.t1.fsLongitudinal") || source.includes("state.settings.t1.device !== defaultSettings.t1.device")) {
+  failures.push('FreeSurfer mode must affect scientific cache identity while CPU/GPU must not.');
+}
+if (!source.includes('data-open-readiness="${esc(key)}"') || !source.includes('renderReadinessModal(openReadiness.dataset.openReadiness)')) {
+  failures.push('fMRI, DTI, and T1 must open modality-specific readiness checks.');
+}
+if (!source.includes("flowStepHtml(key, config, config.flow[1], '2A', chosen)") || !source.includes("flowStepHtml(key, config, config.flow[3], '2B', chosen)")) {
+  failures.push('T1 branch stages must receive the active result selection.');
+}
+if (source.includes("key === 'fmri' ? '可进入分析' : '已登记结果'")) {
+  failures.push('DTI and T1 eligibility must not be mislabeled as registered results.');
 }
 if (!source.includes('`${step[4]} 位患者 · ${step[3]} 次检查`') || !source.includes('`${readiness.supplementPatients} 位患者 · ${readiness.supplement} 次检查`')) {
   failures.push('Pipeline stages must show both patient and examination counts.');
