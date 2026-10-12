@@ -18,7 +18,7 @@ const html = `<!doctype html>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="referrer" content="no-referrer">
   <title>量知 · 临床数据工作台</title>
-  <style>html,body{margin:0;min-width:320px;background:#f7f9f8}button,input,select,textarea{font:inherit}</style>
+  <style>html,body{margin:0;min-width:320px;background:#0b0b0d}button,input,select,textarea{font:inherit}</style>
   <script>
     (() => {
       const key = 'hainan-ui-prototype-state';
@@ -28,7 +28,7 @@ const html = `<!doctype html>
         widgetState: { privateContent },
         setWidgetState(payload) {
           privateContent = payload && payload.privateContent || null;
-          localStorage.setItem(key, JSON.stringify(privateContent));
+          try { localStorage.setItem(key, JSON.stringify(privateContent)); } catch (_) {}
           return Promise.resolve();
         }
       };
