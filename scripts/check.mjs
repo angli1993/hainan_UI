@@ -43,7 +43,22 @@ const required = [
   '脑区形态结果生成',
   'deepmriprep VBM 处理',
   'VBM 结果发布',
-  'EEG 特征提取'
+  'EEG 特征提取',
+  '智能分析',
+  '模型中心',
+  '研究方案设计',
+  '新建研究方案',
+  '检查研究数据可用性',
+  '个体综合评估',
+  '不可变输入契约',
+  '患者分组的嵌套 5 折交叉验证',
+  '技术兼容不等同于临床有效',
+  '外部参照模型',
+  '内部已发布模型',
+  '两项结果未进行数值融合',
+  '海南痴呆多模态分类模型',
+  '退回检查数据',
+  '确认评估记录'
 ];
 
 for (const label of required) {
@@ -103,6 +118,21 @@ if (!source.includes('data-open-readiness="${esc(key)}"') || !source.includes('r
 }
 if (!source.includes("flowStepHtml(key, config, config.flow[1], '2A', chosen)") || !source.includes("flowStepHtml(key, config, config.flow[3], '2B', chosen)")) {
   failures.push('T1 branch stages must receive the active result selection.');
+}
+if (!source.includes("const analysisOpen = ['models','assessment'].includes(state.page)") || !source.includes("analysis:{ modelTab:state.modelTab, selectedModel:state.selectedModel, assessmentTab:state.assessmentTab }")) {
+  failures.push('Model center and individual assessment navigation state must be persistent.');
+}
+if (!source.includes('同一患者所有随访进入同一数据折') || !source.includes('插补仅在训练折拟合')) {
+  failures.push('The model builder must make patient-level splitting and leakage prevention explicit.');
+}
+if (!source.includes('外部脑龄与内部分类模型回答不同问题') || source.includes('综合风险分</b>')) {
+  failures.push('External and internal model outputs must remain separate unless a validated fusion model exists.');
+}
+if (source.includes("['runs','训练与审核']") || source.includes('function modelRunsHtml()') || source.includes('Agent 建模')) {
+  failures.push('Model center must use research-plan design and must not expose a separate training-and-review tab.');
+}
+if (source.includes('12 个月认知变化预测模型') || source.includes('海南认知障碍多模态分类模型') || source.includes('提交医生审核')) {
+  failures.push('The prototype must use the dementia program name, omit the fictional 12-month model, and keep confirmation in the doctor perspective.');
 }
 if (source.includes("key === 'fmri' ? '可进入分析' : '已登记结果'")) {
   failures.push('DTI and T1 eligibility must not be mislabeled as registered results.');
