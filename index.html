@@ -1609,6 +1609,11 @@
       #integrated-clinical-workbench .icw-agent-q-head { flex-wrap: wrap; }
       #integrated-clinical-workbench .icw-scheme-grid { grid-template-columns: 1fr; }
     }
+    #integrated-clinical-workbench button.icw-security { width: 100%; border: 0; text-align: left; cursor: pointer; transition: box-shadow var(--icw-fast) var(--icw-ease); }
+    #integrated-clinical-workbench button.icw-security:hover { box-shadow: var(--icw-shadow-sm), 0 0 0 1px var(--icw-line-strong); }
+    #integrated-clinical-workbench .icw-security.is-routed svg { color: var(--icw-warning); }
+    #integrated-clinical-workbench .icw-note-card.is-warning { background: var(--icw-warning-soft); box-shadow: inset 0 0 0 1px var(--icw-warning-line); }
+    #integrated-clinical-workbench .icw-note-card.is-warning > svg, #integrated-clinical-workbench .icw-note-card.is-warning b { color: var(--icw-warning); }
   </style>
 
   <div class="icw-shell">
@@ -1656,7 +1661,7 @@
           <button type="button" class="icw-subnav-button" data-page="providers"><i data-lucide="shield-check" aria-hidden="true"></i><span>模型服务与隐私路由</span></button>
         </div>
       </nav>
-      <div class="icw-sidebar-foot"><div id="icw-sidebar-server"></div><div class="icw-security"><i data-lucide="shield-check" aria-hidden="true"></i><span><b>本地部署</b><span>数据与模型均不出院</span></span></div></div>
+      <div class="icw-sidebar-foot"><div id="icw-sidebar-server"></div><div id="icw-sidebar-deploy"></div></div>
     </aside>
     <button type="button" class="icw-scrim" aria-label="关闭导航"></button>
 
@@ -2258,7 +2263,7 @@
       ];
 
       const server = {
-        name:'院内分析节点 · hn-neuro-01', location:'本地机房，数据不出院',
+        name:'院内分析节点 · hn-neuro-01', location:'本地机房 · 样本数据不出院',
         gpus:[{ name:'A100 80GB', util:72, mem:61 },{ name:'A100 80GB', util:88, mem:74 },{ name:'A100 80GB', util:0, mem:3 },{ name:'A100 80GB', util:35, mem:28 }],
         cpu:{ cores:64, util:38 }, ram:{ total:512, used:214 }, storage:{ total:120, used:42 },
         llm:{ name:'Qwen3.5-27B', serving:'vLLM · 本地', version:'2026-09-build', status:'在线' },
@@ -2395,7 +2400,7 @@
       ];
       const spaceLabels = { '':'全部模板', 'MNI152NLin2009cAsym':'MNI 2009c 模板', 'MNI152NLin6Asym':'MNI 6 模板', 'MNI152NLin2009bAsym':'MNI 2009b 模板', '未声明':'模板未声明' };
       const spaceLabel = space => spaceLabels[space] || space;
-      const softenSpaces = html => html.replace(/(?<![_\w])MNI152NLin2009cAsym(?![_\w])/g, 'MNI 2009c 模板').replace(/(?<![_\w])MNI152NLin6Asym(?![_\w])/g, 'MNI 6 模板').replace(/(?<![_\w])MNI152NLin2009bAsym(?![_\w])/g, 'MNI 2009b 模板');
+      const softenSpaces = html => html.replace(/>([^<>]*)</g, (match, text) => '>' + text.replace(/(?<![_\w])MNI152NLin2009cAsym(?![_\w])/g, 'MNI 2009c 模板').replace(/(?<![_\w])MNI152NLin6Asym(?![_\w])/g, 'MNI 6 模板').replace(/(?<![_\w])MNI152NLin2009bAsym(?![_\w])/g, 'MNI 2009b 模板') + '<');
       const atlasFamilyNames = { BN:'脑网络组', 'BN Subcortical':'脑网络组皮下', 'Brainnetome Cerebellum':'脑网络组小脑', Brainnetome:'脑网络组', Schaefer:'Schaefer', Tianye:'Tian 皮下', SUIT:'SUIT 小脑', AAL:'AAL', 'AAL Subcortical':'AAL 皮下', HarvardOxford:'Harvard-Oxford', 'HarvardOxford Subcortical':'Harvard-Oxford 皮下', DK:'Desikan-Killiany', Glasser:'Glasser', Yeo:'Yeo 网络', Buckner:'Buckner 小脑', Nettekoven:'Nettekoven 小脑', Broadmann:'Brodmann', MICCAI:'MICCAI', 'Zhang fine-grained':'Zhang 精细分区', HippocampusTian:'Tian 海马', AmygdalaKlein:'Klein 杏仁核', AccumbensHarvard:'Harvard 伏隔核', 'BNST Daria':'Daria 终纹床核', HypothalamusDaria:'Daria 下丘脑', LCBetts:'Betts 蓝斑', LPB:'臂旁核', Pauli2017:'Pauli 皮下', RapheAAN:'中缝核', SubstantiaNigraATAG:'ATAG 黑质', THOMAS:'THOMAS 缰核', VTAAAN:'腹侧被盖区', ELife47177Olfactory:'嗅觉区', TransBrainBN:'TransBrain 脑网络组' };
       const atlasFriendly = atlas => atlas ? `${atlasFamilyNames[atlas.family] || atlas.family}${atlas.labels ? ' ' + atlas.labels.toLocaleString('zh-CN') : ''}` : '未设置';
       const slotFamilies = { cortex:['Schaefer','BN','AAL','DK','Glasser','HarvardOxford','Yeo','Broadmann','MICCAI','Zhang fine-grained'], subcortex:['Tianye','BN Subcortical','AAL Subcortical','HarvardOxford Subcortical','HippocampusTian','AmygdalaKlein'], cerebellum:['SUIT','Brainnetome Cerebellum','Buckner','Nettekoven'] };
@@ -2561,7 +2566,7 @@
         const s = state.settings[key];
         if (key === 'fmri') {
           const pipeline = s.pipeline === 'fmriprep' ? 'fMRIPrep' : 'DeepPrep';
-          return `${pipeline} · ${s.outputSpace} · 按特征加载 BOLD 去噪方案`;
+          return `${pipeline} · ${spaceLabel(s.outputSpace)} · 按特征加载 BOLD 去噪方案`;
         }
         if (key === 'dwi') return `QSIPrep · ${s.resolution} mm · ${{ off:'不启用 SyN', warn:'SyN 畸变校正（按数据判断）' }[s.synSdc]}`;
         if (key === 't1') return 'FreeSurfer 脑区形态 · deepmriprep VBM';
@@ -3697,6 +3702,7 @@
         return `<section class="icw-page">
           ${pageHead('模型服务与隐私路由','默认所有请求只在院内算力上处理。打开隐私路由后，只有经本地检查确认"不含任何样本信息"的请求才会发给国产外部模型，并受预算控制。')}
           ${guide('providers','什么会出院，什么不会',['样本级数据（编号、日期、量表原始值、影像）永远不出院；统计分析在本地完成。','可以出院的只有"公开内容"：文献检索、方法解释、报告措辞润色；由本地分类器判定，不确定一律本地。','外部调用全部记录并计费，超过预算自动回退到本地模型。'],'shield-check')}
+          <div class="icw-note-card ${routed ? 'is-warning' : ''}"><i data-lucide="${routed ? 'shield-alert' : 'info'}" aria-hidden="true"></i><div><b>${routed ? '当前不是完全本地部署' : '开启隐私路由意味着什么'}</b><p>开启后系统从"完全本地部署"变为"本地优先的混合部署"：样本级数据、影像与统计分析仍只在院内；出院的只有被判定为公开的文字请求和外部模型返回的文字。开启前需要院方信息安全部门确认分类策略、审计要求与供应商协议；侧栏与对话页会同步显示当前部署状态。</p></div></div>
           <div class="icw-two-col icw-two-col-tight">
             <div class="icw-card"><div class="icw-card-head"><div><b>路由模式</b><small>当前：${routed ? '本地优先，公开内容可出院' : '仅本地'}</small></div></div>
               <div class="icw-choice-grid"><button type="button" class="icw-choice ${routed ? '' : 'is-active'}" data-route-mode="local"><i data-lucide="${routed ? 'circle' : 'circle-check'}" aria-hidden="true"></i><span><b>仅本地</b><small>所有请求由院内模型处理，不产生外部费用。</small></span></button><button type="button" class="icw-choice ${routed ? 'is-active' : ''}" data-route-mode="routed"><i data-lucide="${routed ? 'circle-check' : 'circle'}" aria-hidden="true"></i><span><b>本地优先 + 隐私路由</b><small>公开内容可发给已启用的外部模型，其余仍在本地。</small></span></button></div>
@@ -3738,6 +3744,11 @@
         content.innerHTML = key === 'chat' ? chatHtml() : key === 'auto' ? autoHtml() : key === 'upload' ? uploadHtml() : key === 'dashboard' ? dashboardHtml() : key === 'samples' ? samplesHtml() : key === 'catalog' ? catalogHtml() : key === 'history' ? historyHtml()
           : key === 'imaging-overview' ? overviewHtml('imaging') : key === 'ephys-overview' ? overviewHtml('ephys') : imaging[key] ? modalityHtml(key) : key === 'features' ? featuresHtml('imaging') : key === 'features-eeg' ? featuresHtml('eeg') : key === 'atlases' ? atlasesHtml() : key === 'report' ? reportHtml() : key === 'providers' ? providersHtml() : key === 'models-external' ? modelsHtml('external') : modelsHtml('private');
         const foot = root.querySelector('#icw-sidebar-server'); if (foot) foot.innerHTML = serverCardHtml(true);
+        const deploy = root.querySelector('#icw-sidebar-deploy');
+        if (deploy) deploy.innerHTML = state.providers.mode === 'routed'
+          ? `<button type="button" class="icw-security is-routed" data-page="providers" title="查看隐私路由设置"><i data-lucide="shield-alert" aria-hidden="true"></i><span><b>混合部署 · 隐私路由已开启</b><span>样本数据不出院，公开内容可调用外部模型</span></span></button>`
+          : `<button type="button" class="icw-security" data-page="providers" title="查看部署与模型服务设置"><i data-lucide="shield-check" aria-hidden="true"></i><span><b>本地部署</b><span>数据与模型均不出院</span></span></button>`;
+        if (key === 'chat') state.chatPrefill = '';
         icons();
         if (key === 'atlases') requestAnimationFrame(drawAtlasViewer);
       }
